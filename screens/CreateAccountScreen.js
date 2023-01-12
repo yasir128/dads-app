@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React, { useEffect } from 'react';
 import useState from 'react-usestateref';
 import {
   View,
@@ -7,13 +7,15 @@ import {
   TextInput,
   TouchableOpacity,
   SafeAreaView,
-  ActivityIndicator
+  ActivityIndicator,
+  ScrollView
 } from 'react-native';
 import Button from '../components/Button';
 import InputField from '../components/InputField';
 
 
 import auth from '@react-native-firebase/auth';
+import { firebase } from '@react-native-firebase/database';
 
 
 export default function CreateAccountScreen({ navigation }) {
@@ -22,17 +24,33 @@ export default function CreateAccountScreen({ navigation }) {
   const [error, setError, errorRef] = useState();
   const [loading, setLoading] = useState()
 
+  // const [displayName, setDisplayName, displayNameRef] = useState()
+  // const [phoneNumber, setPhoneNumber, phoneNumberRef] = useState()
+
   const updateCreds = (cred) => {
     setCreds((prev) => ({ ...prev, ...cred }));
   };
 
-  const createAccount = async () => {
+  // useEffect(() => {
+  //   auth().onAuthStateChanged(async (user) => { // adding more information about user once account created
+  //     console.log("onAuthStateChanged", displayNameRef.current, displayNameRef.current)
+  //     if (user) {
+  //       user.updateProfile({ phoneNumber: phoneNumber,  displayName: displayName, photoURL: "" })
+  //       .then(() => console.log("success", user))
+  //       .catch(err => { setError(error); console.log(error); })
+  //     }
+  //   })
+  // }, [])
+
+  const createAccount = () => {
     setLoading(true)
-    try {
-      let response = await auth().createUserWithEmailAndPassword(creds.username, creds.password)
+    auth().createUserWithEmailAndPassword(creds.username, creds.password)
+    .then(response => {
+      // console.log("user", response.user, displayName, phoneNumber)
+      // firebase.database().ref('users/' + response.user.uid).set({ phoneNumber: phoneNumber,  displayName: displayName, photoURL: "https://media.istockphoto.com/photos/male-silhouette-as-avatar-profile-picture-picture-id519078727?k=6&m=519078727&s=170667a&w=0&h=YSEa8Eia7WKxx4FeSM53AGW9DqBtFwg5KHyGno-W7fc=" })
       setResponse(response)
-    }
-    catch (err) { setError(err.message) }
+    })
+    .catch((err) => { setError(err.message); console.log(err); })
     setLoading(false)
   };
 
@@ -41,11 +59,20 @@ export default function CreateAccountScreen({ navigation }) {
   };
 
   return (
-    <SafeAreaView style={createAccountStyles.container}>
+    <ScrollView style={createAccountStyles.container}>
       <View style={createAccountStyles.logoContainer}>
         <Text style={createAccountStyles.logoPlaceholder}>Logo</Text>
       </View>
       <View style={createAccountStyles.inputsContainer}>
+        {/* <InputField
+          label="Name"
+          onInput={(e) => setDisplayName( e )}
+        />
+        <InputField
+          label="Phone number"
+          onInput={(e) => setPhoneNumber( e )}
+          keyboardType="phone-pad"
+        /> */}
         <InputField
           label="Email"
           onInput={(e) => updateCreds({ username: e })}
@@ -68,7 +95,7 @@ export default function CreateAccountScreen({ navigation }) {
         <Text style={createAccountStyles.grayText}>Already have an account?</Text>
         <Text style={createAccountStyles.linkText}>Login</Text>
       </TouchableOpacity>
-    </SafeAreaView>
+    </ScrollView>
   );
 }
 

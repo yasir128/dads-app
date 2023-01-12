@@ -15,16 +15,25 @@ import SearchBar from '../components/SearchBar'
 // import Icon from 'react-native-vector-icons/FontAwesome5';
 import { firebase } from '@react-native-firebase/database';
 
+import {useGetPostsFromTopic} from '../hooks/useGetPostsFromTopic'
+
 import * as Constants from '../Constants'
 
+import dateFormat from '../helperFunctions/dateFormat'
 
-const PostThumbnail = ({ title, detail, date }) => (
-  <TouchableOpacity style={postThumbnailStyles.container}>
+
+const TimeStamp = ({ d }) => (
+    <Text style={{ color: '#828282', fontSize: 10, }}>{ d ? dateFormat(new Date(d), 'DD-MM-YYYY') : '' }</Text>
+)
+
+const PostThumbnail = ({ title, detail, date, index, onPress }) => (
+  <TouchableOpacity onPress={() => onPress(index)} style={[postThumbnailStyles.container, index==0 && { borderTopLeftRadius: 10, borderTopRightRadius: 10 }]}>
     <View style={postThumbnailStyles.detailContainer}>
       <Text style={postThumbnailStyles.title}>{title}</Text>
       <Text style={postThumbnailStyles.detail} multiline>{detail.substr(0, 70)}...</Text>
     </View>
-    <Text style={postThumbnailStyles.date}>{date}</Text>
+
+    <View style={postThumbnailStyles.timeStampContainer}><TimeStamp d={date} /></View>
   </TouchableOpacity>
 )
 
@@ -32,14 +41,11 @@ const postThumbnailStyles = StyleSheet.create({
   container: {
     width: 330,
     overflow: 'hidden',
-    // borderBottomWidth: 1,
-    // borderBottomColor: '#848484',
     display: 'flex',
     flexDirection: 'row',
     padding: 10,
-    marginBottom: 4,
+    marginBottom: 1,
     backgroundColor: 'rgba(204,229,232, 0.5)',
-    borderRadius: 7,
   },
   detailContainer: {
     display: 'flex',
@@ -52,50 +58,72 @@ const postThumbnailStyles = StyleSheet.create({
     width: 230,
     color: '#a5a5a5'
   },
-  date: {
+  timeStampContainer: {
+    alignSelf: 'flex-end',
+    marginLeft: 25,
   },
 })
 
 
 export default function ForumChildren({ route, navigation }) {
-  const [posts, setPosts] = useState()
-  const [loading, setLoading] = useState(true)
+  const {posts, postsError, postsLoading} = useGetPostsFromTopic({selectedTopic: route.params.selectedTopic})
 
-  const dbRef = firebase.app().database(Constants.DB_NAME).ref('/forum/' + route.params.selectedTopic)
-
-  useEffect(() => {
-    dbRef
-    .once('value')
-    .then(snapshot => {
-      let rawData = snapshot.val()
-      let posts = Object.keys(rawData).map(k => ({ ...rawData[k] }) )
-      setPosts(posts)
-      setLoading(false)
-    })
-    .catch(err => { console.log(err); setLoading(false) })
-  }, [])
+  const onPostPressed = (index) => {
+    navigation.navigate('Post', {postId: posts[index].key, selectedTopic: route.params.selectedTopic })
+  }
 
   return (
     <View style={forumChildrenStyles.container}>
       <SearchBar />
       <ScrollView>
-        { loading && <ActivityIndicator size={30} color='#11798e' /> }
+        { postsLoading && <ActivityIndicator size={30} color='#11798e' /> }
         <View style={forumChildrenStyles.flatListContainer}>
         <FlatList
           keyExtractor={(item) => item.id}
           data={posts}
-          renderItem={(item) => <PostThumbnail {...item.item} />}
+          renderItem={({ item, index }) => <PostThumbnail {...item} index={index} onPress={onPostPressed} />}
         />
         </View>
-
       </ScrollView>
+      <TouchableOpacity
+      onPress={() => navigation.navigate('Forum Post', { selectedTopic: route.params.selectedTopic })}
+      style={forumChildrenStyles.addPostContainer}>
+        <Text style={forumChildrenStyles.addPostText}>+</Text>
+      </TouchableOpacity>
     </View>
   )
 
 }
 
 const forumChildrenStyles = StyleSheet.create({
-  container: {},
+
+  addPostText: {
+    fontSize: 40,
+    color: 'white',
+    paddingBottom: 2,
+  },
+  addPostContainer: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    position: 'absolute',
+    bottom: 10,
+    right: 12,
+    backgroundColor: '#6359a0',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    //SHADOW
+    shadowColor: '#020202',
+    elevation: 3,
+    shadowOffset: { width: -4, height: 5 },
+    shadowOpacity: 0.9,
+    shadowRadius: 1,
+  },
+
+  container: {
+    height: '100%',
+  },
   flatListContainer: {
     marginTop: 30,
     display: 'flex',

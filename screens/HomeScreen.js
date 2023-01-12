@@ -1,51 +1,15 @@
-import * as React from 'react';
-import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { Linking, View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+
+import auth from '@react-native-firebase/auth';
+
 import {UserContext} from '../App'
+import { useGlobalNotification } from '../hooks/useGlobalNotification'
+import { useGetArticleLinks } from '../hooks/useGetArticleLinks'
+
+import { randomChoice } from '../helperFunctions/randomGen'
 
 import Icon from 'react-native-vector-icons/FontAwesome5';
-
-const mockRowData = [
-  {
-    label: 'libero quisque dictumst fames',
-    type: 'REDDIT',
-  },
-  {
-    label: 'nec vehicula fringilla dolor',
-    type: 'TWITTER',
-  },
-  {
-    label: 'fames nibh in vivamus',
-    type: 'REDDIT',
-  },
-  {
-    label: 'non mi dapibus hendrerit',
-    type: 'TWITTER',
-  },
-  {
-    label: 'curabitur libero sem sapien',
-    type: 'REDDIT',
-  },
-  {
-    label: 'suspendisse felis eget dictum',
-    type: 'ARTICLE',
-  },
-  {
-    label: 'ligula molestie tempus est',
-    type: 'TWITTER',
-  },
-  {
-    label: 'egestas aptent tortor nulla',
-    type: 'REDDIT',
-  },
-  {
-    label: 'vivamus congue aenean lorem',
-    type: 'TWITTER',
-  },
-  {
-    label: 'eleifend ante turpis porta',
-    type: 'ARTICLE',
-  },
-];
 
 const iconAndColorFromType = (type) => {
   switch (type) {
@@ -55,6 +19,8 @@ const iconAndColorFromType = (type) => {
       return { color: '#0084b4', icon: 'twitter' };
     case 'ARTICLE':
       return { color: '#b6adcc', icon: 'newspaper' };
+    case 'OTHER':
+      return { color: '#285d70', icon: 'link' };
   }
 };
 
@@ -66,15 +32,21 @@ const ClickableBox = ({iconName, color, label, onPress}) => (
       <Text style={[clickableBoxStyles.label, { color: color }]}>{label}</Text>
      </TouchableOpacity>
 );
-const InfoBox = ({ info }) => (
-  <View style={[infoBoxStyles.container, homeStyles.bigShadowStyles]}>
-    <Icon name="info-circle" size={20} color={'#80af92'} />
-    <Text style={infoBoxStyles.text}>{info}</Text>
-  </View>
-);
+const InfoBox = () => {
+  const { notifications } = useGlobalNotification()
 
-const ClickableIconRow = ({ label, iconName, color, isTop }) => (
-  <View
+  return (
+    <View style={[infoBoxStyles.container, homeStyles.bigShadowStyles]}>
+      <Icon name="info-circle" size={20} color={'#80af92'} />
+      <Text style={infoBoxStyles.text}>{notifications ? randomChoice(notifications).message : 'Loading...'}</Text>
+    </View>
+  )
+};
+
+const ClickableIconRow = ({ label, link, iconName, color, isTop }) => (
+  <TouchableOpacity
+    disabled={isTop}
+    onPress={() => Linking.openURL(link) }
     style={[
       homeStyles.smallShadowStyles,
       clickableIconRowStyleSheet.container,
@@ -87,26 +59,31 @@ const ClickableIconRow = ({ label, iconName, color, isTop }) => (
       color={color}
     />
     <Text style={clickableIconRowStyleSheet.label}>{label}</Text>
-  </View>
+  </TouchableOpacity>
 );
 
 export default function Home({ navigation, route }) {
 
-  const user = React.useContext(UserContext)
+  const [user, setUser] = useState();
 
-  const navigateChat = () => { navigation.navigate('Chats') }
+  useEffect(() => { setUser(auth().currentUser) }, [])
+
+  const { articleLinks, articleLinksError, articleLinksLoading } = useGetArticleLinks()
+
+  const navigateUserForum = () => { navigation.navigate('Forum Children', {  selectedTopic: 'User Questions' }) }
+  const navigateFlowchart = () => { navigation.navigate('Flowchart') }
 
   return (
     <SafeAreaView style={homeStyles.container}>
       <View style={homeStyles.welcomeTextContainer}>
         <Text style={homeStyles.welcomeText}>Welcome back{' '}</Text>
-        <Text style={homeStyles.welcomeTextName}>{user.email}</Text>
+        <Text style={homeStyles.welcomeTextName}>{user && user.displayName}</Text>
       </View>
 
       <ScrollView style={homeStyles.scrollViewContainer}>
         <View style={homeStyles.clickableBoxContainer}>
           <View style={homeStyles.clickableBoxRow}>
-            <InfoBox info="82% of mothers have primary custody of their children and 53% collect child support, compared with 29% of men." />
+            <InfoBox />
           </View>
           <View style={homeStyles.clickableBoxRow}>
             <View
@@ -118,21 +95,22 @@ export default function Home({ navigation, route }) {
             </View>
           </View>
           <View style={homeStyles.clickableBoxRow}>
-            <ClickableBox iconName="balance-scale" color="#e2d7e5" label="legal" />
-            <ClickableBox iconName="comment" color="#a497ef" onPress={navigateChat} label="chat" />
+            <ClickableBox iconName="code-branch" color="#e2d7e5" label="flowchart" onPress={navigateFlowchart} />
+            <ClickableBox iconName="hands-helping" color="#a497ef" onPress={navigateUserForum} label="user questions" />
           </View>
           <View style={homeStyles.clickableBoxRow}>
             <ClickableIconRow
               iconName="newspaper"
-              label="Read latest article by dads"
+              label={!articleLinksError ? "Read latest article by dads" : "Error loaidng articles"}
               color="#a16bdb"
               isTop
             />
           </View>
-          {mockRowData.map(({ label, type, link }) => {
+          {( articleLinksLoading ) && <ActivityIndicator size={20} color='#54408c'  /> }
+          {articleLinks && articleLinks.map(({ label, type, link, id }) => {
             let { color, icon } = iconAndColorFromType(type);
             return (
-              <View style={homeStyles.clickableBoxRow}>
+              <View style={homeStyles.clickableBoxRow} key={id} >
                 <ClickableIconRow link={link} iconName={icon} label={label} color={color} />
               </View>
             );
@@ -197,6 +175,7 @@ const clickableIconRowStyleSheet = StyleSheet.create({
   label: {
     fontSize: 15,
     flex: 0.9,
+    color: '#919191'
   },
 });
 
@@ -274,5 +253,6 @@ const homeStyles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 15,
+    color: '#aaa7b2'
   },
 });

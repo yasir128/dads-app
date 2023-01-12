@@ -12,6 +12,7 @@ export default function SearchBar({ onSearch }) {
       <TextInput
         style={searchBarStyles.input}
         placeholder="search for a section"
+        placeholderTextColor="#d1d1d1"
         onChangeText={t => setcurrentQuery(t)}
       />
       <TouchableOpacity onPress={() => onSearch(currentQuery)} >
@@ -36,6 +37,8 @@ const searchBarStyles = StyleSheet.create({
     padding: 10,
     margin: 5,
     borderRadius: 100,
+    borderColor: '#dddddd',
+    borderWidth: 1,
   },
   input: {
     color: '#5e5e5e',

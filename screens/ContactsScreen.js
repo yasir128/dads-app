@@ -112,9 +112,10 @@ const contactStyle = StyleSheet.create({
   },
   contactName: {
     fontSize: 20,
+    color: '#595658',
   },
   lastText: {
-    color: '#636062',
+    color: '#8c8a8b',
     fontSize: 10,
     marginTop: 5,
   },

@@ -26,10 +26,14 @@
  import ContactsScreen from './screens/ContactsScreen';
  import ForumHomeScreen from './screens/ForumHomeScreen';
  import ForumChildrenScreen from './screens/ForumChildrenScreen'
+ import ForumPostScreen from './screens/ForumPostScreen'
+ import FlowchartScreen from './screens/FlowchartScreen'
+ import UserForumPostScreen from './screens/UserForumPostScreen'
 
  const Stack = createNativeStackNavigator();
  const ChatStack = createNativeStackNavigator();
  const ForumStack = createNativeStackNavigator();
+ const HomeStack = createNativeStackNavigator()
  const Tab = createBottomTabNavigator();
 
 
@@ -42,18 +46,33 @@ export const UserContext = React.createContext();
      <ChatStack.Screen
        component={ChatScreen}
        name="Chat"
-       options={({ route }) => ({ title: route.params.name })}
+       options={({ route }) => ({ title: "" })}
      />
    </ChatStack.Navigator>
  );
 
  const ForumScreens = () => (
-   <ForumStack.Navigator>
+   <ForumStack.Navigator initialRouteName="Forum Home" >
      <ForumStack.Screen component={ForumHomeScreen} name="Forum Home" options={{ headerShown: false }} />
-     <ForumStack.Screen component={ForumChildrenScreen} name="Forum Children" options={({ route }) => ({ title: route.params.selectedTopic }) } />
-   {/* <ForumStack.Screen component={() => () } name="Post" /> */}
+     <ForumStack.Screen component={ForumChildrenScreen} name="Forum Children" options={({ route }) => ({ title: route.params.selectedTopic, }) } />
+     <ForumStack.Screen
+      component={ForumPostScreen}
+      name="Post"
+      options={({ route }) => ({ title: '' })}
+    />
+    <ForumStack.Screen component={UserForumPostScreen} name="Forum Post" options={{headerShown: true, title: 'Create a Post'}} />
    </ForumStack.Navigator>
  )
+
+const HomeScreens = () => (
+  <HomeStack.Navigator>
+    <HomeStack.Screen component={HomeScreen} name="Home" options={{ headerShown: false }} />
+    <HomeStack.Screen component={FlowchartScreen} name="Flowchart" options={{ headerShown: true }} />
+    <HomeStack.Screen component={ForumChildrenScreen} name="Forum Children" options={({ route }) => ({ title: route.params.selectedTopic, }) } />
+    <HomeStack.Screen component={ForumPostScreen} name="Post" options={({ route }) => ({ title: '', headerShown: true })} />
+    <HomeStack.Screen component={UserForumPostScreen} name="Forum Post" options={{headerShown: true, title: 'Create a Post'}} />
+  </HomeStack.Navigator>
+)
 
 
  const Tabs = () => (
@@ -75,8 +94,8 @@ export const UserContext = React.createContext();
        },
      }}>
      <Tab.Screen
-       name="Home"
-       component={HomeScreen}
+       name="Home Screens"
+       component={HomeScreens}
        options={{
          tabBarIcon: ({ color, size }) => (
            <Icon name="home" color={color} size={size} />
@@ -93,13 +112,13 @@ export const UserContext = React.createContext();
        }}
      />
      <Tab.Screen
-       name="Legal"
+       name="Forum"
        component={ForumScreens}
        options={{
          tabBarIcon: ({ color, size }) => (
            <Icon name="balance-scale" color={color} size={size} />
          ),
-       }}
+      }}
      />
      <Tab.Screen
        name="Profile"
@@ -118,7 +137,13 @@ export default function App() {
    const [user, setUser] = useState();
 
    function onAuthStateChanged(user) {
-     setUser(user);
+     console.log(user)
+     if (user) {
+       if (user.displayName) { setUser(user); return; }
+       user.updateProfile({ displayName: user.email.split('@')[0] }).then(() => {
+         setUser(user)
+       }).catch(error => console.log(error) )
+     }
      if (initializing) setInitializing(false);
    }
 

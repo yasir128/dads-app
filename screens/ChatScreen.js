@@ -62,7 +62,7 @@ const messageStyles = StyleSheet.create({
     color: '#ffff',
   },
   text: {
-    // color: '#7e7e7f',
+    //color: '#7e7e7f',
     color: '#ffff',
   },
 });
