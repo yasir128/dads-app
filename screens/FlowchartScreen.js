@@ -105,6 +105,22 @@ const selectedNodeDetailStyles = StyleSheet.create({
 
 const flowchartNodeStyles = StyleSheet.create({
 
+    backToTopContainer: {
+      alignSelf: 'center',
+      backgroundColor: '#8fa8bf',
+      padding: 10,
+      borderRadius: 20,
+    },
+
+    backToTopText: {
+      color: 'white',
+    },
+
+    nameScrollContainer: {
+      height: 130,
+    },
+
+
     yesNoButtonContainer: {
       display: 'flex',
       flexDirection: 'row',
@@ -218,6 +234,8 @@ export default function Flowchart({ navigation, route }) {
   const [scrollVerRef, setScrollVerRef] = useState()
   const [offset, setOffset, offsetRef] = useState()
 
+  const [flowchartStart, setFlowchartStart] = useState(false)
+
 
   useEffect(() => {
 
@@ -246,7 +264,7 @@ export default function Flowchart({ navigation, route }) {
 
     console.log(offsetRef)
 
-    setOffset(p => ({ y: p.y + 550, x: selectedNodeRef.current.yes ? ( p.x - 200 ) : p.x }))
+    setOffset(p => ({ y: p.y + 680, x: selectedNodeRef.current.yes ? ( p.x - 200 ) : p.x }))
 
     console.log(offsetRef)
 
@@ -260,7 +278,7 @@ export default function Flowchart({ navigation, route }) {
     if (!selectedNodeRef.current) return
 
 
-    setOffset(p => ({ y: (p.y + 550), x: selectedNodeRef.current.no ? ( p.x + 150  ) : p.x }))
+    setOffset(p => ({ y: (p.y + 680), x: selectedNodeRef.current.no ? ( p.x + 150  ) : p.x }))
 
     scrollVerRef.scrollTo({y: offsetRef.current.y,})
     scrollHorRef.scrollTo({x:  offsetRef.current.x})
@@ -307,15 +325,20 @@ export default function Flowchart({ navigation, route }) {
                 <Icon name="copy" size={20} color="#677c96"/>
               </TouchableOpacity>
           </View>
-          <Text style={flowchartNodeStyles.name}>{name}</Text>
+          <ScrollView style={flowchartNodeStyles.nameScrollContainer} contentContainerStyle={{flexGrow: 1, justifyContent: 'center'}}><Text style={flowchartNodeStyles.name}>{name}</Text></ScrollView>
 
           <View style={flowchartNodeStyles.yesNoButtonContainer}>
-            <TouchableOpacity style={[flowchartNodeStyles.yesNoButton, {backgroundColor: '#f2c9c9', opacity: no ? 1 : 0.5}]} onPress={() => no ? scrollToNo() : scrollToTop()}>
-              <Text style={flowchartStyles.noButtonText}>{no ? "No" : "Back to top"}</Text>
+            <TouchableOpacity disabled={!no} style={[flowchartNodeStyles.yesNoButton, {backgroundColor: '#f2c9c9', opacity: no ? 1 : 0.3}]} onPress={() => scrollToNo()}>
+              <Text style={flowchartStyles.noButtonText}>{"No"}</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={[flowchartNodeStyles.yesNoButton, {backgroundColor: '#b6d8c4', opacity: yes ? 1 : 0.5}]} onPress={() => yes ? scrollToYes() : scrollToTop()}>
-              <Text style={flowchartStyles.yesButtonText}>{yes ? 'Yes' : "Back to top"}</Text>
+
+            <TouchableOpacity onPress={scrollToTop} style={flowchartNodeStyles.backToTopContainer}><Icon name="arrow-up" color="white" size={10} /></TouchableOpacity>
+
+            <TouchableOpacity disabled={!yes} style={[flowchartNodeStyles.yesNoButton, {backgroundColor: '#b6d8c4', opacity: yes ? 1 : 0.3}]} onPress={() => scrollToYes()}>
+              <Text style={flowchartStyles.yesButtonText}>{'Yes'}</Text>
             </TouchableOpacity>
+
+
           </View>
 
         </View>
@@ -341,9 +364,20 @@ export default function Flowchart({ navigation, route }) {
       {flowcharts && <Text style={flowchartStyles.flowchartTitleText}>{flowcharts[0].title}</Text>}
     </View>
 
+
+    {  // Jammy fix to issue of scrollToYes/No not seeing selectedNode has been set by calling scrollView on the first click to anywhere on screen
+      !flowchartStart && (
+      <TouchableOpacity style={flowchartStyles.flowchartStartContainer} onPress={() => {
+          scrollToTop();
+          setFlowchartStart(true);
+        }}>
+        <Text style={flowchartStyles.flowchartStartText}>Start Flowchart</Text>
+      </TouchableOpacity>)
+    }
+
     <View style={flowchartStyles.flowchartContainer}>
-      <ScrollView horizontal ref={r => setScrollHorRef(r)} >
-          <ScrollView ref={r => setScrollVerRef(r)} >
+      <ScrollView horizontal ref={r => setScrollHorRef(r)} scrollEnabled={false}>
+          <ScrollView ref={r => setScrollVerRef(r)} scrollEnabled={false}>
             <View style={{ transform: [{ scale: 1}] }}>
             {flowcharts && <FlowchartNode {...flowcharts[0].flowchart} />}
             {flowchartsLoading && <ActivityIndicator size={50} color="#16247f" /> }
@@ -359,6 +393,23 @@ export default function Flowchart({ navigation, route }) {
 // ({...p, y: event.nativeEvent.contentOffset.y})))
 
 const flowchartStyles = StyleSheet.create({
+
+  flowchartStartContainer: {
+    position: 'absolute',
+    top: 100,
+    left: 0,
+    backgroundColor: '#2c5b87',
+    padding: 30,
+    zIndex: 100,
+    width: '100%',
+    height: '90%',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    opacity: 0,
+  },
+  flowchartStartText: {},
+
   container: {
     backgroundColor: '#f9f9f9',
     // margin: 10,
