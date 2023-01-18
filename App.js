@@ -58,7 +58,7 @@ export const UserContext = React.createContext();
      <ForumStack.Screen
       component={ForumPostScreen}
       name="Post"
-      options={({ route }) => ({ title: '' })}
+      options={({ route }) => ({ title: '' })} 
     />
     <ForumStack.Screen component={UserForumPostScreen} name="Forum Post" options={{headerShown: true, title: 'Create a Post'}} />
    </ForumStack.Navigator>

@@ -17,39 +17,11 @@ import Clipboard from '@react-native-clipboard/clipboard';
 
 import { useGetFlowcharts } from '../hooks/useGetFlowcharts'
 
-const flowchartData =
-{
-  name: 'Are you already separated?',
-  no: false,
-  yes: {
-    name: 'Are you able to mutually agree on everything?',
-    yes: {name: 'Once the legal process has ran it\'s course you will need to agree the following:\nMake a parenting plan\nAgree finance\n Agree where children live/access/visits/time', yes: false, no: false},
-    no: {
-          name: 'First step is mediation, necessary in most cases before further steps are taken. Usually takes place over a period of time with many visits.',
-          no: false,
-          yes: {
-            name: 'Did mediation work?',
-            yes: false,
-            no: {
-              name: 'Has your partner accused you of abusive behaviour, or are social services involved',
-              no: false,
-              yes: {
-                name:'You will need legal representation. A number of options are listed that you may find very helpful. You can get free initial consultations but you must prepare your questions first to make the most of it. The citizens advice bureau is also  a good source of help in the first instance.',
-                no: false,
-                yes: {
-                  name: 'The legal process will run its course until you are both able to agree an outcome, or one is imposed upon you.',
-                  no: false,
-                  yes: {
-                    name: 'Once the legal process has ran it\'s course you will need to agree the following:\nMake a parenting plan\nAgree finance\n Agree where children live/access/visits/time',
-                    yes: false, no: false
-                  },
-                },
-              },
-            },
-          },
-      }
-  }
-}
+
+const SCROLL_X_OFFSET = 380
+
+const SCROLLVIEW_Y_ENABLED = false
+const SCROLLVIEW_X_ENABLED = true
 
 
 const SelectedNodeDetail = ({ name, link, postId, topic }) => (
@@ -172,7 +144,7 @@ const flowchartNodeStyles = StyleSheet.create({
     padding: 25,
     paddingLeft: 30,
     paddingRight: 30,
-    position: 'relative',
+    // position: 'relative',
     // SHADOW
     shadowColor: '#adadad',
     elevation: 3,
@@ -214,6 +186,9 @@ const flowchartNodeStyles = StyleSheet.create({
     margin: 10,
   },
   yesNodeContainer: {
+    // display: 'flex',
+    // flexDirection: 'row',
+    alignSelf: 'flex-start',
   },
   noNodeContainer: {
     alignSelf: 'flex-start',
@@ -239,9 +214,9 @@ export default function Flowchart({ navigation, route }) {
 
   useEffect(() => {
 
-    setOffset({x: 200, y: 0})
+    setOffset({x: SCROLL_X_OFFSET, y: 0})
 
-    if (scrollHorRef) scrollHorRef.scrollTo({x: offsetRef.current.x, animated: true})
+    if (scrollHorRef) scrollHorRef.scrollTo({x: SCROLL_X_OFFSET, animated: true})
     if (scrollVerRef) scrollVerRef.scrollTo({animated: true})
 
     if (flowcharts) setSelectedNode(flowcharts[0].flowchart)
@@ -250,9 +225,9 @@ export default function Flowchart({ navigation, route }) {
 
 
   const scrollToTop = () => {
-    setOffset({x: 200, y: 0})
+    setOffset({x: SCROLL_X_OFFSET, y: 0})
     setSelectedNode(flowcharts[0].flowchart)
-    scrollHorRef.scrollTo({x: 200})
+    scrollHorRef.scrollTo({x: SCROLL_X_OFFSET})
     scrollVerRef.scrollTo({y: 0})
   }
 
@@ -264,7 +239,7 @@ export default function Flowchart({ navigation, route }) {
 
     console.log(offsetRef)
 
-    setOffset(p => ({ y: p.y + 680, x: selectedNodeRef.current.yes ? ( p.x - 200 ) : p.x }))
+    setOffset(p => ({ y: p.y + 680, x: selectedNodeRef.current.yes ? ( p.x - (SCROLL_X_OFFSET * 0.4) ) : p.x }))
 
     console.log(offsetRef)
 
@@ -275,10 +250,14 @@ export default function Flowchart({ navigation, route }) {
 
   }
   const scrollToYes = () => {
+
+    console.log("\nselected node\n", selectedNodeRef.current)
+
     if (!selectedNodeRef.current) return
 
+    console.log("\nShould go right",  selectedNodeRef.current.no ? "true" : "false")
 
-    setOffset(p => ({ y: (p.y + 680), x: selectedNodeRef.current.no ? ( p.x + 150  ) : p.x }))
+    setOffset(p => ({ y: (p.y + 680), x: selectedNodeRef.current.no ? ( p.x + (SCROLL_X_OFFSET * 0.4)  ) : p.x }))
 
     scrollVerRef.scrollTo({y: offsetRef.current.y,})
     scrollHorRef.scrollTo({x:  offsetRef.current.x})
@@ -347,8 +326,8 @@ export default function Flowchart({ navigation, route }) {
           { yes ? <View style={flowchartNodeStyles.yesTextContainer}><Text style={{color: '#b0b0b2'}}>yes</Text></View> : <Text style={flowchartNodeStyles.stopNode}>end</Text>  }
         </View>
         <View style={flowchartNodeStyles.nodesContainer}>
-          <View style={flowchartNodeStyles.yesNodeContainer}>{ yes && <FlowchartNode {...yes} /> }</View>
           <View style={flowchartNodeStyles.noNodeContainer}>{ no && <FlowchartNode {...no} /> }</View>
+          <View style={flowchartNodeStyles.yesNodeContainer}>{ yes && <FlowchartNode {...yes} /> }</View>
         </View>
       </View>
     )
@@ -376,8 +355,8 @@ export default function Flowchart({ navigation, route }) {
     }
 
     <View style={flowchartStyles.flowchartContainer}>
-      <ScrollView horizontal ref={r => setScrollHorRef(r)} scrollEnabled={false}>
-          <ScrollView ref={r => setScrollVerRef(r)} scrollEnabled={false}>
+      <ScrollView horizontal ref={r => setScrollHorRef(r)} scrollEnabled={SCROLLVIEW_X_ENABLED}>
+          <ScrollView ref={r => setScrollVerRef(r)} scrollEnabled={SCROLLVIEW_Y_ENABLED}>
             <View style={{ transform: [{ scale: 1}] }}>
             {flowcharts && <FlowchartNode {...flowcharts[0].flowchart} />}
             {flowchartsLoading && <ActivityIndicator size={50} color="#16247f" /> }

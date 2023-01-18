@@ -44,7 +44,7 @@ export default function CreateAccountScreen({ navigation }) {
 
   const createAccount = () => {
     setLoading(true)
-    auth().createUserWithEmailAndPassword(creds.username, creds.password)
+    auth().createUserWithEmailAndPassword(creds.username, creds.password) 
     .then(response => {
       // console.log("user", response.user, displayName, phoneNumber)
       // firebase.database().ref('users/' + response.user.uid).set({ phoneNumber: phoneNumber,  displayName: displayName, photoURL: "https://media.istockphoto.com/photos/male-silhouette-as-avatar-profile-picture-picture-id519078727?k=6&m=519078727&s=170667a&w=0&h=YSEa8Eia7WKxx4FeSM53AGW9DqBtFwg5KHyGno-W7fc=" })
