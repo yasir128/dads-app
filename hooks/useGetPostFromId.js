@@ -12,8 +12,6 @@ export const useGetPostFromId = ({ selectedTopic, id, reload }) => {
     useEffect(() => {
       if (posts && !postsError) {
         setPost(posts.filter(p => (p.id === id) || (p.key === id) )[0])
-
-        console.log(posts)
       }
     }, [postsLoading])
 

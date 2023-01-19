@@ -1,12 +1,18 @@
 /**
- * Sample React Native App
- * https://github.com/facebook/react-native
+ * Dads App
  *
  * @format
  * @flow strict-local
  */
 
- import React, { useEffect } from 'react';
+ import React, { useEffect, useRef } from 'react';
+ import {
+   StyleSheet,
+   ImageBackground,
+   Animated,
+   View
+ } from 'react-native';
+
  import { NavigationContainer } from '@react-navigation/native';
  import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
  import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -36,12 +42,12 @@
  const HomeStack = createNativeStackNavigator()
  const Tab = createBottomTabNavigator();
 
-
+const headerStyles = StyleSheet.create({headerStyle: {backgroundColor: '#c2d3c9', height: 35}, headerTintColor: '#757575' })
 
 export const UserContext = React.createContext();
 
  const ChatScreens = () => (
-   <ChatStack.Navigator>
+   <ChatStack.Navigator screenOptions={headerStyles}>
      <ChatStack.Screen component={ContactsScreen} name="Contacts" />
      <ChatStack.Screen
        component={ChatScreen}
@@ -52,20 +58,20 @@ export const UserContext = React.createContext();
  );
 
  const ForumScreens = () => (
-   <ForumStack.Navigator initialRouteName="Forum Home" >
+   <ForumStack.Navigator initialRouteName="Forum Home" screenOptions={headerStyles} >
      <ForumStack.Screen component={ForumHomeScreen} name="Forum Home" options={{ headerShown: false }} />
      <ForumStack.Screen component={ForumChildrenScreen} name="Forum Children" options={({ route }) => ({ title: route.params.selectedTopic, }) } />
      <ForumStack.Screen
       component={ForumPostScreen}
       name="Post"
-      options={({ route }) => ({ title: '' })} 
+      options={({ route }) => ({ title: '' })}
     />
     <ForumStack.Screen component={UserForumPostScreen} name="Forum Post" options={{headerShown: true, title: 'Create a Post'}} />
    </ForumStack.Navigator>
  )
 
 const HomeScreens = () => (
-  <HomeStack.Navigator>
+  <HomeStack.Navigator screenOptions={headerStyles}>
     <HomeStack.Screen component={HomeScreen} name="Home" options={{ headerShown: false }} />
     <HomeStack.Screen component={FlowchartScreen} name="Flowchart" options={{ headerShown: true }} />
     <HomeStack.Screen component={ForumChildrenScreen} name="Forum Children" options={({ route }) => ({ title: route.params.selectedTopic, }) } />
@@ -73,6 +79,8 @@ const HomeScreens = () => (
     <HomeStack.Screen component={UserForumPostScreen} name="Forum Post" options={{headerShown: true, title: 'Create a Post'}} />
   </HomeStack.Navigator>
 )
+
+
 
 
  const Tabs = () => (
@@ -132,29 +140,60 @@ const HomeScreens = () => (
    </Tab.Navigator>
  );
 
+const FADEDURATION = 3000
+
 export default function App() {
    const [initializing, setInitializing] = useState(true);
    const [user, setUser] = useState();
+   const [showSplash, setShowSplash] = useState(FADEDURATION)
+
+   const opacityRef = useRef(new Animated.Value(1)).current
+
 
    function onAuthStateChanged(user) {
-     console.log(user)
      if (user) {
        if (user.displayName) { setUser(user); return; }
        user.updateProfile({ displayName: user.email.split('@')[0] }).then(() => {
          setUser(user)
        }).catch(error => console.log(error) )
      }
+     if (!user) { setUser(false) } // logging out
      if (initializing) setInitializing(false);
    }
 
    useEffect(() => {
+
+     setTimeout(() => {
+       setShowSplash(false);
+     }, FADEDURATION);
+
      const subscriber = auth().onAuthStateChanged(onAuthStateChanged);
      return subscriber; // unsubscribe on unmount
    }, []);
 
+   useEffect(() => {
+      Animated.timing(opacityRef, {
+        toValue: 0,
+        duration: FADEDURATION,
+        useNativeDriver: true,
+      }).start();
+   }, [opacityRef]);
+
    if (initializing) return null;
 
-   if (!user) return (
+   if (!user && showSplash) return (
+     <View style={{backgroundColor: '#80af92'}}>
+      <Animated.Image
+        source={ require('./assets/dads-beach-photo.jpg') }
+        resizeMode="cover"
+        blurRadius={1}
+        fadeDuration={0}
+        style={{opacity: opacityRef, width: '100%', height: '100%'}} />
+      </View>
+    )
+
+
+   if (!user && !showSplash) return (
      <>
        <NavigationContainer>
          <Stack.Navigator
@@ -166,7 +205,7 @@ export default function App() {
      </>
    )
 
-   return (
+   if (user) return (
      <UserContext.Provider value={user}>
        <NavigationContainer>
          <Stack.Navigator
