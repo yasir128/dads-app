@@ -196,6 +196,7 @@ export default function ForumPost({ navigation, route }) {
 
 const forumPostStyles = StyleSheet.create({
   container: {
+    marginTop: 20,
   },
   postContainer: {
     margin: 10,

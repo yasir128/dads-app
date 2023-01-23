@@ -107,7 +107,7 @@ const forumChildrenStyles = StyleSheet.create({
     height: 60,
     borderRadius: 30,
     position: 'absolute',
-    bottom: 10,
+    bottom: 70,
     right: 12,
     backgroundColor: '#6359a0',
     display: 'flex',
@@ -123,6 +123,7 @@ const forumChildrenStyles = StyleSheet.create({
 
   container: {
     height: '100%',
+    marginTop: 60,
   },
   flatListContainer: {
     marginTop: 30,

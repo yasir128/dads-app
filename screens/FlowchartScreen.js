@@ -18,9 +18,10 @@ import Clipboard from '@react-native-clipboard/clipboard';
 import { useGetFlowcharts } from '../hooks/useGetFlowcharts'
 
 
-const SCROLL_X_OFFSET = 380
+const SCROLL_X_OFFSET = 425
+const SCROLL_Y_OFFSET = 855
 
-const SCROLLVIEW_Y_ENABLED = false
+const SCROLLVIEW_Y_ENABLED = true
 const SCROLLVIEW_X_ENABLED = true
 
 
@@ -43,7 +44,6 @@ const SelectedNodeDetail = ({ name, link, postId, topic }) => (
 
 const selectedNodeDetailStyles = StyleSheet.create({
   container: {
-    margin: 20,
     backgroundColor: '#ffffff',
     // SHADOW
     shadowColor: '#adadad',
@@ -52,7 +52,6 @@ const selectedNodeDetailStyles = StyleSheet.create({
     shadowOpacity: 0.7,
     shadowRadius: 1,
     borderRadius: 10,
-    padding: 15,
   },
   selectedNodeText: {
     fontSize: 16,
@@ -63,7 +62,7 @@ const selectedNodeDetailStyles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'flex-end',
     marginBottom: 13,
-    width: 250,
+    width: 290,
   },
   copyIconContainer: {
 
@@ -80,8 +79,13 @@ const flowchartNodeStyles = StyleSheet.create({
     backToTopContainer: {
       alignSelf: 'center',
       backgroundColor: '#8fa8bf',
-      padding: 10,
-      borderRadius: 20,
+      width: 30,
+      height: 30,
+      padding: 3,
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      borderRadius: 25,
     },
 
     backToTopText: {
@@ -89,7 +93,7 @@ const flowchartNodeStyles = StyleSheet.create({
     },
 
     nameScrollContainer: {
-      height: 130,
+      height: 300,
     },
 
 
@@ -126,6 +130,8 @@ const flowchartNodeStyles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     display: 'flex',
+    zIndex: 50,
+    // backgroundColor: 'rgba(0,0,0,0.5)',
   },
   name: {
     fontSize: 20,
@@ -136,14 +142,14 @@ const flowchartNodeStyles = StyleSheet.create({
 
   nameContainer: {
     margin: 10,
-    width: 300,
+    width: 330,
     borderTopWidth: 8,
-    paddingTop: 25,
     backgroundColor: '#ffffff',
     borderRadius: 7,
     padding: 25,
     paddingLeft: 30,
     paddingRight: 30,
+    zIndex: 50,
     // position: 'relative',
     // SHADOW
     shadowColor: '#adadad',
@@ -233,15 +239,11 @@ export default function Flowchart({ navigation, route }) {
 
   const scrollToNo = () => {
 
-    console.log(selectedNodeRef)
 
     if (!selectedNodeRef.current) return
 
-    console.log(offsetRef)
 
-    setOffset(p => ({ y: p.y + 680, x: selectedNodeRef.current.yes ? ( p.x - (SCROLL_X_OFFSET * 0.4) ) : p.x }))
-
-    console.log(offsetRef)
+    setOffset(p => ({ y: p.y + SCROLL_Y_OFFSET, x: selectedNodeRef.current.yes ? ( p.x - (SCROLL_X_OFFSET * 0.4) ) : p.x }))
 
     scrollVerRef.scrollTo({y:  offsetRef.current.y, })
     scrollHorRef.scrollTo({x: offsetRef.current.x})
@@ -251,13 +253,9 @@ export default function Flowchart({ navigation, route }) {
   }
   const scrollToYes = () => {
 
-    console.log("\nselected node\n", selectedNodeRef.current)
-
     if (!selectedNodeRef.current) return
 
-    console.log("\nShould go right",  selectedNodeRef.current.no ? "true" : "false")
-
-    setOffset(p => ({ y: (p.y + 680), x: selectedNodeRef.current.no ? ( p.x + (SCROLL_X_OFFSET * 0.4)  ) : p.x }))
+    setOffset(p => ({ y: (p.y + SCROLL_Y_OFFSET), x: selectedNodeRef.current.no ? ( p.x + (SCROLL_X_OFFSET * 0.4)  ) : p.x }))
 
     scrollVerRef.scrollTo({y: offsetRef.current.y,})
     scrollHorRef.scrollTo({x:  offsetRef.current.x})
@@ -344,7 +342,7 @@ export default function Flowchart({ navigation, route }) {
     </View>
 
 
-    {  // Jammy fix to issue of scrollToYes/No not seeing selectedNode has been set by calling scrollView on the first click to anywhere on screen
+    {  // Jammy fix to issue of scrollToYes/No not seeing selectedNode has been set by calling scrollToTop on the first click to anywhere on screen
       !flowchartStart && (
       <TouchableOpacity style={flowchartStyles.flowchartStartContainer} onPress={() => {
           scrollToTop();
@@ -395,6 +393,7 @@ const flowchartStyles = StyleSheet.create({
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
+    marginTop: 0,
   },
   flowchartTitleContainer: {
     width: '100%',
@@ -405,6 +404,7 @@ const flowchartStyles = StyleSheet.create({
   flowchartTitleText: {
     fontSize: 25,
     padding: 10,
+    textAlign: 'center',
     color: '#bcbcbc',
   },
   selectedNodeContainer: {
@@ -416,6 +416,7 @@ const flowchartStyles = StyleSheet.create({
     textAlign: 'center',
   },
   flowchartContainer: {
-    marginTop: 100,
+    marginTop: 30,
+    marginBottom: 100,
   },
 });

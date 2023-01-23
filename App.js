@@ -10,7 +10,8 @@
    StyleSheet,
    ImageBackground,
    Animated,
-   View
+   View,
+   TouchableOpacity
  } from 'react-native';
 
  import { NavigationContainer } from '@react-navigation/native';
@@ -34,6 +35,7 @@
  import ForumChildrenScreen from './screens/ForumChildrenScreen'
  import ForumPostScreen from './screens/ForumPostScreen'
  import FlowchartScreen from './screens/FlowchartScreen'
+ // import FlowchartScreen from './screens/FlowchartQuizScreen'
  import UserForumPostScreen from './screens/UserForumPostScreen'
 
  const Stack = createNativeStackNavigator();
@@ -42,12 +44,48 @@
  const HomeStack = createNativeStackNavigator()
  const Tab = createBottomTabNavigator();
 
-const headerStyles = StyleSheet.create({headerStyle: {backgroundColor: '#c2d3c9', height: 35}, headerTintColor: '#757575' })
+const screenOptions = ({ navigation }) => ({
+  headerStyle: { backgroundColor: 'transparent', elevation: 0, shadowOpacity: 0 },
+  headerTransparent: true,
+  headerShadowVisible: false,
+  headerBackVisible: false,
+  headerTitle: '',
+  headerLeft: ({ canGoBack }) => canGoBack ? <HeaderBackButton navigation={navigation} /> : (<></>)
+})
+
+
+const headerBackButtonStyles = StyleSheet.create({
+    container: {
+        backgroundColor: '#80af92',
+        width: 45,
+        height: 45,
+        borderRadius: 50,
+        padding: 10,
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        //SHADOW
+        shadowColor: '#adadad',
+        elevation: 3,
+        shadowOffset: { width: -2, height: 2 },
+        shadowOpacity: 0.7,
+        shadowRadius: 1,
+    },
+})
+
+const HeaderBackButton = ({ navigation }) => (
+    <TouchableOpacity
+      onPress={() => { navigation.goBack(); } }
+      style={headerBackButtonStyles.container} >
+      <Icon name="arrow-left" size={25} color='white' />
+    </TouchableOpacity>
+)
+
 
 export const UserContext = React.createContext();
 
  const ChatScreens = () => (
-   <ChatStack.Navigator screenOptions={headerStyles}>
+   <ChatStack.Navigator screenOptions={screenOptions} >
      <ChatStack.Screen component={ContactsScreen} name="Contacts" />
      <ChatStack.Screen
        component={ChatScreen}
@@ -58,7 +96,7 @@ export const UserContext = React.createContext();
  );
 
  const ForumScreens = () => (
-   <ForumStack.Navigator initialRouteName="Forum Home" screenOptions={headerStyles} >
+   <ForumStack.Navigator initialRouteName="Forum Home" screenOptions={screenOptions} >
      <ForumStack.Screen component={ForumHomeScreen} name="Forum Home" options={{ headerShown: false }} />
      <ForumStack.Screen component={ForumChildrenScreen} name="Forum Children" options={({ route }) => ({ title: route.params.selectedTopic, }) } />
      <ForumStack.Screen
@@ -71,7 +109,7 @@ export const UserContext = React.createContext();
  )
 
 const HomeScreens = () => (
-  <HomeStack.Navigator screenOptions={headerStyles}>
+  <HomeStack.Navigator screenOptions={screenOptions}>
     <HomeStack.Screen component={HomeScreen} name="Home" options={{ headerShown: false }} />
     <HomeStack.Screen component={FlowchartScreen} name="Flowchart" options={{ headerShown: true }} />
     <HomeStack.Screen component={ForumChildrenScreen} name="Forum Children" options={({ route }) => ({ title: route.params.selectedTopic, }) } />
@@ -184,7 +222,7 @@ export default function App() {
    if (!user && showSplash) return (
      <View style={{backgroundColor: '#80af92'}}>
       <Animated.Image
-        source={ require('./assets/dads-beach-photo.jpg') }
+        source={ require('./assets/dads-beach-photo-crop.jpg') }
         resizeMode="cover"
         blurRadius={1}
         fadeDuration={0}
