@@ -21,11 +21,11 @@ import { useGetFlowcharts } from '../hooks/useGetFlowcharts'
 const SCROLL_X_OFFSET = 425
 const SCROLL_Y_OFFSET = 855
 
-const SCROLLVIEW_Y_ENABLED = true
+const SCROLLVIEW_Y_ENABLED = false
 const SCROLLVIEW_X_ENABLED = true
 
 
-const SelectedNodeDetail = ({ name, link, postId, topic }) => (
+const SelectedNodeDetail = ({ name, link, postId, selectedTopic }) => (
   <View style={selectedNodeDetailStyles.container}>
     <View style={selectedNodeDetailStyles.optionsContainer}>
         <TouchableOpacity
@@ -34,7 +34,7 @@ const SelectedNodeDetail = ({ name, link, postId, topic }) => (
         {(link || postId) && <TouchableOpacity
           onPress={() => {
             if (link) Linking.openURL(link)
-            else navigation.navigate('Post', {postId: postId, selectedTopic: topic})
+            else navigation.navigate('Post', {postId: postId, selectedTopic: selectedTopic })
           }}
           style={selectedNodeDetailStyles.linkIconContainer}><Icon name="external-link-alt" color="#679682" size={20}/></TouchableOpacity>}
     </View>
@@ -227,7 +227,7 @@ export default function Flowchart({ navigation, route }) {
 
     if (flowcharts) setSelectedNode(flowcharts[0].flowchart)
 
-  }, [flowchartsLoading])
+  }, [flowcharts])
 
 
   const scrollToTop = () => {
@@ -293,7 +293,7 @@ export default function Flowchart({ navigation, route }) {
                   style={selectedNodeDetailStyles.linkIconContainer}
                   onPress={() => {
                     if (link) Linking.openURL(link)
-                    else navigation.navigate('Post', {postId: postId, selectedTopic: topic})
+                    else navigation.navigate('Post', {postId: postId, selectedTopic: topic })
                   }}>
                     <Icon name="external-link-alt" color="#679682" size={20}/>
                 </TouchableOpacity>

@@ -17,10 +17,10 @@ import SearchBar from '../components/SearchBar'
 
 import {useGetFeaturedArticles} from '../hooks/useGetFeaturedArticles'
 
-import { firebase } from '@react-native-firebase/database';
-
 import { generateID } from '../helperFunctions/randomGen'
 import * as Constants from '../Constants'
+
+import { useGetForumTopics } from '../hooks/useGetForumTopics'
 
 const sectionHeaderStyles = StyleSheet.create({
   container: {
@@ -77,35 +77,17 @@ const featuredArticleStyles = StyleSheet.create({
 });
 
 export default function ForumHome({ navigation, route }) {
-  const [mainTopics, setMainTopics] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [ query, setQuery ] = useState('')
 
   const { featuredArticles, featuredArticlesError } = useGetFeaturedArticles()
 
-  const dbRef = firebase.app().database(Constants.DB_NAME).ref('/forum')
 
+  const { topicsLoading, topicsError, topics } = useGetForumTopics({ query: query })
 
-  const onTopicSelected = (title) => {
-    navigation.navigate('Forum Children', { selectedTopic: title })
+  const onTopicSelected = (selectedTopic) => {
+    navigation.navigate('Forum Children', { selectedTopic: selectedTopic })
   };
 
-
-  useEffect(() => {
-
-    dbRef
-      .once('value')
-      .then(snapshot => {
-        setLoading(false)
-        let rawData = snapshot.val()
-        let data = Object.keys(rawData).map(k => ({ title: k, id: generateID(Constants.ID_LENGTH) }) )
-        setMainTopics( data )
-      })
-      .catch(err => {
-        console.log(err)
-        setLoading(false)
-      })
-
-  }, [])
 
   const SectionHeader = ({ title, onPress }) => (
     <TouchableOpacity onPress={onPress} style={[sectionHeaderStyles.container, legalStyles.shadowStyles]}>
@@ -119,11 +101,11 @@ export default function ForumHome({ navigation, route }) {
     </TouchableOpacity>
   );
 
-  const FeaturedArticle = ({ title, imageUri, link, backgroundColor, postId, topic }) => (
+  const FeaturedArticle = ({ title, imageUri, link, backgroundColor, postId }) => (
     <TouchableOpacity
       onPress={() => {
         if (link) Linking.openURL(link)
-        else navigation.navigate('Post', {postId: postId, selectedTopic: topic})
+        else navigation.navigate('Post', {postId: postId, selectedTopic: title})
       }}
       style={[featuredArticleStyles.container, legalStyles.shadowStyles]}>
       <Image style={featuredArticleStyles.image} source={{ uri: imageUri }} blurRadius={10} />
@@ -133,7 +115,7 @@ export default function ForumHome({ navigation, route }) {
 
   return (
     <SafeAreaView style={legalStyles.container}>
-      <SearchBar />
+      <SearchBar placeholder="Search for a section" onSearching={q => setQuery(q)} />
       <ScrollView style={legalStyles.sectionsContainer}>
         <ScrollView style={legalStyles.featuredArticleContainer} horizontal>
           { featuredArticles
@@ -145,11 +127,11 @@ export default function ForumHome({ navigation, route }) {
 
         <Text style={legalStyles.forumTitleText}>Forums</Text>
 
-        { loading && <ActivityIndicator size={30} color='#11798e' /> }
+        { topicsLoading && <ActivityIndicator size={30} color='#11798e' /> }
 
         <FlatList
-          keyExtractor={(item) => item.id}
-          data={mainTopics}
+          keyExtractor={(item) => item.key}
+          data={topics}
           renderItem={(item) => <SectionHeader {...item.item} onPress={() => onTopicSelected(item.item.title)} />}
         />
       </ScrollView>

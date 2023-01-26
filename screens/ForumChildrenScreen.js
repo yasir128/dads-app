@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useLayoutEffect } from 'react';
 import {
   View,
   Text,
@@ -11,8 +11,11 @@ import {
   ActivityIndicator,
   TouchableOpacity
 } from 'react-native';
+import useState from 'react-usestateref';
+
 import SearchBar from '../components/SearchBar'
 // import Icon from 'react-native-vector-icons/FontAwesome5';
+
 import { firebase } from '@react-native-firebase/database';
 
 import {useGetPostsFromTopic} from '../hooks/useGetPostsFromTopic'
@@ -66,36 +69,52 @@ const postThumbnailStyles = StyleSheet.create({
 
 
 export default function ForumChildren({ route, navigation }) {
-  const {posts, postsError, postsLoading} = useGetPostsFromTopic({selectedTopic: route.params.selectedTopic})
+
+  const [query, setQuery, queryRef] = useState('')
+
+
+  const {posts, postsError, postsLoading} = useGetPostsFromTopic({selectedTopic: route.params.selectedTopic, query: queryRef.current})
 
   const onPostPressed = (index) => {
     navigation.navigate('Post', {postId: posts[index].key, selectedTopic: route.params.selectedTopic })
   }
 
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerTitle: () => <SearchBar onSearching={ t => setQuery(t) } placeholder="Search for a post" style={{height: 50, width: 250}} iconSize={15} />,
+    })
+  }, [])
+
   return (
-    <View style={forumChildrenStyles.container}>
-      <SearchBar />
-      <ScrollView>
-        { postsLoading && <ActivityIndicator size={30} color='#11798e' /> }
-        <View style={forumChildrenStyles.flatListContainer}>
-        <FlatList
-          keyExtractor={(item) => item.id}
-          data={posts}
-          renderItem={({ item, index }) => <PostThumbnail {...item} index={index} onPress={onPostPressed} />}
-        />
-        </View>
-      </ScrollView>
-      <TouchableOpacity
-      onPress={() => navigation.navigate('Forum Post', { selectedTopic: route.params.selectedTopic })}
-      style={forumChildrenStyles.addPostContainer}>
-        <Text style={forumChildrenStyles.addPostText}>+</Text>
-      </TouchableOpacity>
+    <View>
+      <View style={forumChildrenStyles.container}>
+        <ScrollView>
+          { postsLoading && <ActivityIndicator size={30} color='#11798e' /> }
+          <View style={forumChildrenStyles.flatListContainer}>
+          <FlatList
+            keyExtractor={(item) => item.id}
+            data={posts}
+            renderItem={({ item, index }) => <PostThumbnail {...item} index={index} onPress={onPostPressed} />}
+          />
+          </View>
+        </ScrollView>
+        <TouchableOpacity
+        onPress={() => navigation.navigate('Forum Post', { selectedTopic: route.params.selectedTopic })}
+        style={forumChildrenStyles.addPostContainer}>
+          <Text style={forumChildrenStyles.addPostText}>+</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   )
 
 }
 
 const forumChildrenStyles = StyleSheet.create({
+
+  container: {
+    height: '100%',
+    marginTop: 30,
+  },
 
   addPostText: {
     fontSize: 40,
@@ -109,6 +128,7 @@ const forumChildrenStyles = StyleSheet.create({
     position: 'absolute',
     bottom: 70,
     right: 12,
+    zIndex: 100,
     backgroundColor: '#6359a0',
     display: 'flex',
     justifyContent: 'center',
@@ -119,11 +139,6 @@ const forumChildrenStyles = StyleSheet.create({
     shadowOffset: { width: -4, height: 5 },
     shadowOpacity: 0.9,
     shadowRadius: 1,
-  },
-
-  container: {
-    height: '100%',
-    marginTop: 60,
   },
   flatListContainer: {
     marginTop: 30,

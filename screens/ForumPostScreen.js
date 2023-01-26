@@ -167,7 +167,7 @@ export default function ForumPost({ navigation, route }) {
             contentInsetAdjustmentBehavior="automatic">
             <View>
               <View style={forumPostStyles.postDetailContainer}>
-                {postError && <Text style={forumPostStyles.errorText}>Error loading post</Text>}
+                {postError && <Text style={forumPostStyles.errorText}>{postError.message}</Text>}
                 <Markdown style={{ body: { color: '#000000' } }}>
                   {postLoading ? "" : detail}
                 </Markdown>

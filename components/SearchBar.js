@@ -3,22 +3,25 @@ import { View, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 
 import Icon from 'react-native-vector-icons/FontAwesome5';
 
-export default function SearchBar({ onSearch }) {
+export default function SearchBar({ onSearch=() => {}, onSearching=() => {}, placeholder, style={}, iconSize=25 }) {
 
   const [currentQuery, setcurrentQuery] = useState('')
 
   return (
-    <View style={searchBarStyles.container}>
+    <View style={[searchBarStyles.container, style ]}>
       <TextInput
         style={searchBarStyles.input}
-        placeholder="search for a section"
+        placeholder={placeholder}
         placeholderTextColor="#d1d1d1"
-        onChangeText={t => setcurrentQuery(t)}
+        onChangeText={t => {
+          setcurrentQuery(t);
+          onSearching(t);
+        }}
       />
       <TouchableOpacity onPress={() => onSearch(currentQuery)} >
       <Icon
         name="search"
-        size={25}
+        size={iconSize}
         color="#80af92"
         style={searchBarStyles.icon}
       />
@@ -44,8 +47,8 @@ const searchBarStyles = StyleSheet.create({
     color: '#5e5e5e',
     padding: 5,
     paddingLeft: 7,
-    width: '85%',
     zIndex: 1,
+    width: '85%'
   },
   icon: {
     flex: 1,

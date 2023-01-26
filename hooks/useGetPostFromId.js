@@ -1,19 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import * as Constants from '../Constants'
 
-import { useGetPostsFromTopic } from './useGetPostsFromTopic'
+import { useGetQueriedListFromFirebaseRef } from './useGetQueriedListFromFirebaseRef'
 
 export const useGetPostFromId = ({ selectedTopic, id, reload }) => {
 
     const [post, setPost] = useState()
 
-    const { posts, postsError, postsLoading } = useGetPostsFromTopic({ selectedTopic: selectedTopic, reload: reload })
+    const { data, loading, error } = useGetQueriedListFromFirebaseRef({ ref: `forum/${selectedTopic}/`, query: id, child: 'id', reload: reload })
 
     useEffect(() => {
-      if (posts && !postsError) {
-        setPost(posts.filter(p => (p.id === id) || (p.key === id) )[0])
+      if (data && !error) {
+        setPost(data[0]);
       }
-    }, [postsLoading])
+    }, [loading])
 
-    return {  ...post, postError: postsError, postLoading: postsLoading }
+    return {  ...post, postError: error, postLoading: loading }
 }
