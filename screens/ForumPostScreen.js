@@ -7,7 +7,7 @@ import {
   StyleSheet,
   TextInput,
   TouchableOpacity,
-  ActivityIndicator
+  ActivityIndicator,
 } from 'react-native';
 
 import { firebase } from '@react-native-firebase/database';
@@ -168,7 +168,7 @@ export default function ForumPost({ navigation, route }) {
             <View>
               <View style={forumPostStyles.postDetailContainer}>
                 {postError && <Text style={forumPostStyles.errorText}>{postError.message}</Text>}
-                <Markdown style={{ body: { color: '#000000' } }}>
+                <Markdown style={{ body: { color: '#000000' } }} >
                   {postLoading ? "" : detail}
                 </Markdown>
               </View>

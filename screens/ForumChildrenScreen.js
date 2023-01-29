@@ -9,7 +9,8 @@ import {
   FlatList,
   Image,
   ActivityIndicator,
-  TouchableOpacity
+  TouchableOpacity,
+  Dimensions
 } from 'react-native';
 import useState from 'react-usestateref';
 
@@ -42,7 +43,7 @@ const PostThumbnail = ({ title, detail, date, index, onPress }) => (
 
 const postThumbnailStyles = StyleSheet.create({
   container: {
-    width: 330,
+    width: Dimensions.get('window').width * 0.9,
     overflow: 'hidden',
     display: 'flex',
     flexDirection: 'row',
@@ -88,16 +89,16 @@ export default function ForumChildren({ route, navigation }) {
   return (
     <View>
       <View style={forumChildrenStyles.container}>
-        <ScrollView>
-          { postsLoading && <ActivityIndicator size={30} color='#11798e' /> }
+          { postsLoading && <ActivityIndicator size={30} color='#11798e' style={{ marginTop: 100 }} /> }
           <View style={forumChildrenStyles.flatListContainer}>
           <FlatList
             keyExtractor={(item) => item.id}
             data={posts}
+            scrollEnabled={true}
             renderItem={({ item, index }) => <PostThumbnail {...item} index={index} onPress={onPostPressed} />}
           />
           </View>
-        </ScrollView>
+
         <TouchableOpacity
         onPress={() => navigation.navigate('Forum Post', { selectedTopic: route.params.selectedTopic })}
         style={forumChildrenStyles.addPostContainer}>
@@ -144,9 +145,10 @@ const forumChildrenStyles = StyleSheet.create({
     marginTop: 30,
     display: 'flex',
     flex: 1,
-    width: '100%',
+    width: Dimensions.get('window').width,
     justifyContent: 'center',
     alignItems: 'center',
     alignContent: 'center',
+    paddingBottom: 55,
   },
 })

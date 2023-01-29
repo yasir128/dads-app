@@ -19,9 +19,8 @@
  import { createNativeStackNavigator } from '@react-navigation/native-stack';
  import auth from '@react-native-firebase/auth';
  import Icon from 'react-native-vector-icons/FontAwesome5';
- // import { PermissionsAndroid } from 'react-native';
- // import { SendbirdUIKitContainer } from '@sendbird/uikit-react-native';
- // import AsyncStorage from '@react-native-async-storage/async-storage';
+
+ // import { generateID } from './helperFunctions/randomGen'
 
  import useState from 'react-usestateref';
 
@@ -43,6 +42,27 @@
  const ForumStack = createNativeStackNavigator();
  const HomeStack = createNativeStackNavigator()
  const Tab = createBottomTabNavigator();
+
+
+ const linking = {
+  prefixes: ['dadsapp://'],
+    config: {
+      screens: {
+        HomeTabs: {
+          screens: {
+            Forum: {
+              screens: {
+                Post: {
+                  path: 'post/:selectedTopic/:postId/',
+                }
+              }
+            }
+          }
+        },
+      },
+    }
+};
+
 
 const screenOptions = ({ navigation }) => ({
   headerStyle: { backgroundColor: 'transparent', elevation: 0, shadowOpacity: 0 },
@@ -103,6 +123,7 @@ export const UserContext = React.createContext();
       component={ForumPostScreen}
       name="Post"
       options={({ route }) => ({ title: '' })}
+      getId={({params}) => params.postId}
     />
     <ForumStack.Screen component={UserForumPostScreen} name="Forum Post" options={{headerShown: true, title: 'Create a Post'}} />
    </ForumStack.Navigator>
@@ -245,7 +266,7 @@ export default function App() {
 
    if (user) return (
      <UserContext.Provider value={user}>
-       <NavigationContainer>
+       <NavigationContainer linking={linking}>
          <Stack.Navigator
            screenOptions={{ unmountOnBlur: true, headerShown: false }}>
            <Stack.Screen component={Tabs} name="HomeTabs" />

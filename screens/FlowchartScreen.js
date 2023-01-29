@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   Linking,
   ActivityIndicator,
+  Dimensions
 } from 'react-native';
 
 import useState from 'react-usestateref';
@@ -17,8 +18,9 @@ import Clipboard from '@react-native-clipboard/clipboard';
 
 import { useGetFlowcharts } from '../hooks/useGetFlowcharts'
 
+const PADDING = 20
 
-const SCROLL_X_OFFSET = 425
+const SCROLL_X_OFFSET = Dimensions.get('window').width + 286
 const SCROLL_Y_OFFSET = 855
 
 const SCROLLVIEW_Y_ENABLED = false
@@ -142,7 +144,7 @@ const flowchartNodeStyles = StyleSheet.create({
 
   nameContainer: {
     margin: 10,
-    width: 330,
+    width: Dimensions.get('window').width - PADDING,
     borderTopWidth: 8,
     backgroundColor: '#ffffff',
     borderRadius: 7,
@@ -209,7 +211,6 @@ export default function Flowchart({ navigation, route }) {
   const { flowcharts, flowchartsError, flowchartsLoading } = useGetFlowcharts({ reload: false })
 
 
-  // const [selectedNode, setSelectedNode] = useState({name: flowchartsError ? 'Error Loading the flowchart' : 'Scroll to view the whole flowchart to better understand the divorce process. You can press a node to get more detail and read related posts.'})
   const [selectedNode, setSelectedNode, selectedNodeRef] = useState()
   const [scrollHorRef, setScrollHorRef] = useState()
   const [scrollVerRef, setScrollVerRef] = useState()
@@ -242,8 +243,9 @@ export default function Flowchart({ navigation, route }) {
 
     if (!selectedNodeRef.current) return
 
+    let xOff = selectedNodeRef.current.yes ? ( offset.x - (SCROLL_X_OFFSET * 0.31) ) : offset.x
 
-    setOffset(p => ({ y: p.y + SCROLL_Y_OFFSET, x: selectedNodeRef.current.yes ? ( p.x - (SCROLL_X_OFFSET * 0.4) ) : p.x }))
+    setOffset(p => ({ y: p.y + SCROLL_Y_OFFSET, x: selectedNodeRef.current.noXOff ? p.x - selectedNodeRef.current.noXOff :  xOff }))
 
     scrollVerRef.scrollTo({y:  offsetRef.current.y, })
     scrollHorRef.scrollTo({x: offsetRef.current.x})
@@ -255,7 +257,9 @@ export default function Flowchart({ navigation, route }) {
 
     if (!selectedNodeRef.current) return
 
-    setOffset(p => ({ y: (p.y + SCROLL_Y_OFFSET), x: selectedNodeRef.current.no ? ( p.x + (SCROLL_X_OFFSET * 0.4)  ) : p.x }))
+    let xOff = selectedNodeRef.current.no ? ( offset.x + (SCROLL_X_OFFSET * 0.3)  ) : offset.x
+
+    setOffset(p => ({ y: (p.y + SCROLL_Y_OFFSET), x: selectedNodeRef.current.yesXOff ? selectedNodeRef.current.yesXOff + p.x : xOff }))
 
     scrollVerRef.scrollTo({y: offsetRef.current.y,})
     scrollHorRef.scrollTo({x:  offsetRef.current.x})
