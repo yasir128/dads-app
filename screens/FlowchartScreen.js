@@ -20,10 +20,10 @@ import { useGetFlowcharts } from '../hooks/useGetFlowcharts'
 
 const PADDING = 20
 
-const SCROLL_X_OFFSET = Dimensions.get('window').width + 286
+const SCROLL_X_OFFSET = 1820
 const SCROLL_Y_OFFSET = 855
 
-const SCROLLVIEW_Y_ENABLED = false
+const SCROLLVIEW_Y_ENABLED = true // DISABLE
 const SCROLLVIEW_X_ENABLED = true
 
 

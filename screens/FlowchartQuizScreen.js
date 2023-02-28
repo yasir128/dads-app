@@ -8,12 +8,21 @@ import {
   TouchableOpacity,
   Linking,
   ActivityIndicator,
+  Animated,
+  Dimensions
 } from 'react-native';
+
+import {PanGestureHandler} from 'react-native-gesture-handler';
 
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import Clipboard from '@react-native-clipboard/clipboard';
 
 import { useGetFlowcharts } from '../hooks/useGetFlowcharts'
+
+
+const YES_COLOR = '#b6d8c4'
+const NO_COLOR = '#f2c9c9'
+
 
 const selectedNodeDetailStyles = StyleSheet.create({
   container: {
@@ -180,12 +189,11 @@ const flowchartNodeStyles = StyleSheet.create({
 
 export default function Flowchart({ navigation, route }) {
 
-
   const { flowcharts, flowchartsError, flowchartsLoading } = useGetFlowcharts({ reload: false })
-
-
   // const [selectedNode, setSelectedNode] = useState({name: flowchartsError ? 'Error Loading the flowchart' : 'Scroll to view the whole flowchart to better understand the divorce process. You can press a node to get more detail and read related posts.'})
   const [selectedNode, setSelectedNode] = useState()
+
+  const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 
   const goBack = () => {
     setSelectedNode(flowcharts[0].flowchart)
@@ -195,58 +203,176 @@ export default function Flowchart({ navigation, route }) {
     if (flowcharts) setSelectedNode(flowcharts[0].flowchart)
   }, [flowcharts])
 
-  const FlowchartNode = ({name, link, postId, topic, yes, no, color}) => (
-      <View style={flowchartNodeStyles.container}>
-        <View style={[ flowchartNodeStyles.nameContainer, { borderTopColor: color || '#6072e5' } ]}>
 
-          <View style={selectedNodeDetailStyles.optionsContainer}>
-              {(link || postId) &&
-                <TouchableOpacity
-                  style={selectedNodeDetailStyles.linkIconContainer}
-                  onPress={() => {
-                    if (link) Linking.openURL(link)
-                    else navigation.navigate('Post', {postId: postId, selectedTopic: topic})
-                  }}>
-                    <Icon name="external-link-alt" color="#679682" size={20}/>
-                </TouchableOpacity>
-              }
-              <TouchableOpacity  onPress={() => Clipboard.setString(name)} style={selectedNodeDetailStyles.copyIconContainer}>
-                <Icon name="copy" size={20} color="#677c96"/>
-              </TouchableOpacity>
-          </View>
+  const translateX = new Animated.Value(0)
+  const translateY = new Animated.Value(0)
 
-          <ScrollView
-            style={flowchartNodeStyles.nameScrollContainer}
-            contentContainerStyle={{flexGrow: 1, justifyContent: 'center'}}>
-              <Text style={flowchartNodeStyles.name}>{name}</Text>
-          </ScrollView>
-
-        </View>
-      </View>
+  const handlePan = Animated.event(
+    [{ nativeEvent: { translationX: translateX } } ], { useNativeDriver: true }
   )
+
+  const swipeUpAnimation = Animated.timing(translateY, {
+    toValue: -500,
+    duration: 400,
+    useNativeDriver:true
+  })
+
+  const resetY = Animated.timing(translateY,{
+      toValue:0,
+      duration:250,
+      useNativeDriver:true
+  })
+
+  const resetX = Animated.timing(translateX,{
+      toValue:0,
+      duration:250,
+      useNativeDriver:true
+    })
+
+    const swipeLeftAnimation = Animated.timing(translateX,{
+      toValue: 600,
+      duration: 400,
+      useNativeDriver:true
+    })
+
+    const swipeRightAnimation = Animated.timing(translateX,{
+      toValue: -600,
+      duration: 400,
+      useNativeDriver:true
+  })
+
+
+  const threshold = Dimensions.get('window').width / 3
+
+  const handleSwipe = ({nativeEvent, yes, no}) => {
+    //swiping right
+    const {state} = nativeEvent
+    if(state === 5) {
+      if(nativeEvent.translationX < -threshold && yes) { // SWIPE RIGHT (YES)
+        swipeRightAnimation.start(() => {
+            resetX.start(() => setSelectedNode(yes))
+        })
+      }
+
+      //swiping left
+      else if(nativeEvent.translationX > threshold && no) { // SWIPE LEFT (NO)
+        swipeLeftAnimation.start(() => {
+          resetX.start(() => setSelectedNode(no))
+        })
+      }
+
+      else resetX.start()
+    }
+
+  }
+
+  const FlowchartNode = ({name, link, postId, topic, yes, no, color}) => (
+      <Animated.View style={[flowchartNodeStyles.container, {
+        opacity: translateY.interpolate({
+          inputRange: [-500, 0],
+          outputRange: [-1, 1]
+        })
+      }]}>
+          <PanGestureHandler onHandlerStateChange={(e) => handleSwipe({...e, yes, no})} onGestureEvent={handlePan}>
+          <Animated.View style={
+            [
+              flowchartNodeStyles.nameContainer,
+              {
+                borderTopColor: color || '#6072e5',
+                transform:[
+                  { translateX: translateX },
+                  { translateY: translateY },
+                  { rotate: translateX.interpolate({
+                    inputRange: [-Dimensions.get('window').width, 0, Dimensions.get('window').width],
+                    outputRange: ['-50deg', '0deg', '50deg']
+                  })}
+                ],
+                opacity: translateX.interpolate({
+                  inputRange: [-Dimensions.get('window').width, 0, Dimensions.get('window').width],
+                  outputRange: [-1, 1, -1]
+                })
+              }
+            ]
+          }>
+            <View style={selectedNodeDetailStyles.optionsContainer}>
+                {(link || postId) &&
+                  <TouchableOpacity
+                    style={selectedNodeDetailStyles.linkIconContainer}
+                    onPress={() => {
+                      if (link) Linking.openURL(link)
+                      else navigation.navigate('Post', {postId: postId, selectedTopic: topic})
+                    }}>
+                      <Icon name="external-link-alt" color="#679682" size={20}/>
+                  </TouchableOpacity>
+                }
+                <TouchableOpacity  onPress={() => Clipboard.setString(name)} style={selectedNodeDetailStyles.copyIconContainer}>
+                  <Icon name="copy" size={20} color="#677c96"/>
+                </TouchableOpacity>
+            </View>
+
+            <ScrollView
+              style={flowchartNodeStyles.nameScrollContainer}
+              contentContainerStyle={{flexGrow: 1, justifyContent: 'center'}}>
+                <Text style={flowchartNodeStyles.name}>{name}</Text>
+            </ScrollView>
+
+            </Animated.View>
+          </PanGestureHandler>
+      </Animated.View>
+  )
+
 
 
   const YesNoButtons = ({ yes, no }) => (
     <View style={flowchartNodeStyles.yesNoButtonContainer}>
-      <TouchableOpacity
+      <AnimatedTouchable
       disabled={!no}
-      style={[flowchartNodeStyles.yesNoButton, {backgroundColor: '#f2c9c9', opacity: no ? 1 : 0.3}]}
-      onPress={() => setSelectedNode(no)}>
+      style={[
+        flowchartNodeStyles.yesNoButton,
+        {
+          backgroundColor: NO_COLOR,
+          opacity: no ? 1 : 0.3,
+          transform: [
+            {
+              scale: translateX.interpolate({
+                inputRange: [-Dimensions.get('window').width, 0, Dimensions.get('window').width],
+                outputRange: [1, 1, 1.5]
+              })
+            }
+          ]
+        }
+      ]}
+      onPress={() => swipeLeftAnimation.start(() => resetX.start(() => setSelectedNode(no)) ) }>
         <Text style={flowchartStyles.noButtonText}>{"No"}</Text>
-      </TouchableOpacity>
+      </AnimatedTouchable>
 
       <TouchableOpacity
-      onPress={() => goBack()}
-      style={flowchartNodeStyles.backToTopContainer}>
+      disabled={flowcharts[0].flowchart === selectedNode}
+      onPress={() => swipeUpAnimation.start(() => resetY.start(() => goBack()))}
+      style={[flowchartNodeStyles.backToTopContainer, {opacity: flowcharts[0].flowchart === selectedNode ? 0.5 : 1}]}>
         <Icon name="arrow-up" color="white" size={10} />
       </TouchableOpacity>
 
-      <TouchableOpacity
+      <AnimatedTouchable
       disabled={!yes}
-      style={[flowchartNodeStyles.yesNoButton, {backgroundColor: '#b6d8c4', opacity: yes ? 1 : 0.3}]}
-      onPress={() => setSelectedNode(yes)}>
+      style={[
+        flowchartNodeStyles.yesNoButton,
+        {
+          backgroundColor: YES_COLOR,
+          opacity: yes ? 1 : 0.3,
+          transform: [
+            {
+              scale: translateX.interpolate({
+                inputRange: [-Dimensions.get('window').width, 0, Dimensions.get('window').width],
+                outputRange: [1.5, 1, 1]
+              })
+            }
+          ]
+        }
+      ]}
+      onPress={() => swipeRightAnimation.start(() => resetX.start(() => setSelectedNode(yes))) } >
         <Text style={flowchartStyles.yesButtonText}>{'Yes'}</Text>
-      </TouchableOpacity>
+      </AnimatedTouchable>
     </View>
   )
 
@@ -260,6 +386,7 @@ export default function Flowchart({ navigation, route }) {
     <View style={flowchartStyles.flowchartContainer}>
           <View>
             {selectedNode && <FlowchartNode {...selectedNode} /> }
+
             {flowchartsLoading && <ActivityIndicator size={50} color="#16247f" /> }
             {flowchartsError && <Text style={flowchartStyles.errorText}>{flowchartError}</Text>}
           </View>

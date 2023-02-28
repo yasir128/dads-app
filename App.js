@@ -33,19 +33,24 @@
  import ForumHomeScreen from './screens/ForumHomeScreen';
  import ForumChildrenScreen from './screens/ForumChildrenScreen'
  import ForumPostScreen from './screens/ForumPostScreen'
- import FlowchartScreen from './screens/FlowchartScreen'
- // import FlowchartScreen from './screens/FlowchartQuizScreen'
+ // import FlowchartScreen from './screens/FlowchartScreen'
+ import FlowchartScreen from './screens/FlowchartQuizScreen'
  import UserForumPostScreen from './screens/UserForumPostScreen'
+
+ import { MixpanelProvider, useMixpanel }  from './Analytics';
 
  const Stack = createNativeStackNavigator();
  const ChatStack = createNativeStackNavigator();
  const ForumStack = createNativeStackNavigator();
  const HomeStack = createNativeStackNavigator()
+ const FlowchartStack = createNativeStackNavigator();
  const Tab = createBottomTabNavigator();
 
 
+import {GestureHandlerRootView} from 'react-native-gesture-handler';
+
  const linking = {
-  prefixes: ['dadsapp://'],
+  prefixes: ['dadsapp://', 'dadsapp://post/'],
     config: {
       screens: {
         HomeTabs: {
@@ -53,7 +58,7 @@
             Forum: {
               screens: {
                 Post: {
-                  path: 'post/:selectedTopic/:postId/',
+                  path: '/:selectedTopic/:postId/',
                 }
               }
             }
@@ -115,7 +120,16 @@ export const UserContext = React.createContext();
    </ChatStack.Navigator>
  );
 
- const ForumScreens = () => (
+ const ForumScreens = ({ navigation }) => {
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('tabPress', (e) => {
+      e.preventDefault();
+      navigation.navigate('Forum', {screen: 'Forum Home'});
+    });
+  }, [navigation])
+
+  return (
    <ForumStack.Navigator initialRouteName="Forum Home" screenOptions={screenOptions} >
      <ForumStack.Screen component={ForumHomeScreen} name="Forum Home" options={{ headerShown: false }} />
      <ForumStack.Screen component={ForumChildrenScreen} name="Forum Children" options={({ route }) => ({ title: route.params.selectedTopic, }) } />
@@ -128,6 +142,7 @@ export const UserContext = React.createContext();
     <ForumStack.Screen component={UserForumPostScreen} name="Forum Post" options={{headerShown: true, title: 'Create a Post'}} />
    </ForumStack.Navigator>
  )
+}
 
 const HomeScreens = () => (
   <HomeStack.Navigator screenOptions={screenOptions}>
@@ -140,6 +155,12 @@ const HomeScreens = () => (
 )
 
 
+const FlowchartScreens = () => (
+  <FlowchartStack.Navigator screenOptions={screenOptions}>
+    <FlowchartStack.Screen component={FlowchartScreen} name="Flowchart" options={{ headerShown: true }} />
+    <FlowchartStack.Screen component={ForumPostScreen} name="Post" options={({ route }) => ({ title: '', headerShown: true })} />
+  </FlowchartStack.Navigator>
+)
 
 
  const Tabs = () => (
@@ -170,11 +191,11 @@ const HomeScreens = () => (
        }}
      />
      <Tab.Screen
-       name="Chats"
-       component={ChatScreens}
+       name="Divorce Process"
+       component={FlowchartScreens}
        options={{
          tabBarIcon: ({ color, size }) => (
-           <Icon name="comment" color={color} size={size} />
+           <Icon name="code-branch" color={color} size={size} />
          ),
        }}
      />
@@ -208,7 +229,6 @@ export default function App() {
 
    const opacityRef = useRef(new Animated.Value(1)).current
 
-
    function onAuthStateChanged(user) {
      if (user) {
        if (user.displayName) { setUser(user); return; }
@@ -221,11 +241,10 @@ export default function App() {
    }
 
    useEffect(() => {
-
      setTimeout(() => {
        setShowSplash(false);
      }, FADEDURATION);
-
+     // WATCH AUTH STATUS FIREBASE
      const subscriber = auth().onAuthStateChanged(onAuthStateChanged);
      return subscriber; // unsubscribe on unmount
    }, []);
@@ -265,13 +284,17 @@ export default function App() {
    )
 
    if (user) return (
-     <UserContext.Provider value={user}>
-       <NavigationContainer linking={linking}>
-         <Stack.Navigator
-           screenOptions={{ unmountOnBlur: true, headerShown: false }}>
-           <Stack.Screen component={Tabs} name="HomeTabs" />
-         </Stack.Navigator>
-       </NavigationContainer>
-     </UserContext.Provider>
+     <GestureHandlerRootView style={{ flex: 1 }}>
+       <UserContext.Provider value={user}>
+         <MixpanelProvider>
+           <NavigationContainer linking={linking}>
+             <Stack.Navigator
+               screenOptions={{ unmountOnBlur: true, headerShown: false }}>
+               <Stack.Screen component={Tabs} name="HomeTabs" />
+             </Stack.Navigator>
+           </NavigationContainer>
+         </MixpanelProvider>
+       </UserContext.Provider>
+     </GestureHandlerRootView>
    );
 }

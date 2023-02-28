@@ -10,6 +10,9 @@ import { useGetArticleLinks } from '../hooks/useGetArticleLinks'
 import { randomChoice } from '../helperFunctions/randomGen'
 
 import Icon from 'react-native-vector-icons/FontAwesome5';
+import { useMixpanel } from '../Analytics';
+
+
 
 const iconAndColorFromType = (type) => {
   switch (type) {
@@ -62,15 +65,22 @@ const ClickableIconRow = ({ label, link, iconName, color, isTop }) => (
   </TouchableOpacity>
 );
 
+
 export default function Home({ navigation, route }) {
 
   const [user, setUser] = useState();
 
-  useEffect(() => { setUser(auth().currentUser) }, [])
+  const mixpanel = useMixpanel();
+
+  useEffect(() => {
+    setUser(auth().currentUser)
+    mixpanel.identify(auth().currentUser.uid)
+  }, [])
 
   const { articleLinks, articleLinksError, articleLinksLoading } = useGetArticleLinks()
 
   const navigateUserForum = () => { navigation.navigate('Forum Children', {  selectedTopic: 'User Questions' }) }
+  const navigateSuggestions = () => { navigation.navigate('Post', {  selectedTopic: 'General', postId: 'ysuoxzeu' }) }
   const navigateFlowchart = () => { navigation.navigate('Flowchart') }
 
   return (
@@ -95,8 +105,8 @@ export default function Home({ navigation, route }) {
             </View>
           </View>
           <View style={homeStyles.clickableBoxRow}>
-            <ClickableBox iconName="code-branch" color="#e2d7e5" label="flowchart" onPress={navigateFlowchart} />
-            <ClickableBox iconName="hands-helping" color="#a497ef" onPress={navigateUserForum} label="user questions" />
+            <ClickableBox iconName="code-branch" color="#a497ef" label="seperation process" onPress={navigateFlowchart} />
+            <ClickableBox iconName="hands-helping" color="#a497ef" onPress={navigateSuggestions} label="feedback" />
           </View>
           <View style={homeStyles.clickableBoxRow}>
             <ClickableIconRow

@@ -8,6 +8,7 @@ import {
   TextInput,
   TouchableOpacity,
   ActivityIndicator,
+  Linking,
 } from 'react-native';
 
 import { firebase } from '@react-native-firebase/database';
@@ -18,11 +19,11 @@ import Avatar from '../components/Avatar'
 import {useGetComments} from '../hooks/useGetComments'
 import {useGetPostFromId} from '../hooks/useGetPostFromId'
 
-
 import * as Constants from '../Constants'
 import {UserContext} from '../App'
 import { generateID } from '../helperFunctions/randomGen'
 
+import { useMixpanel } from '../Analytics';
 
 const AddComment = ({ onPostComment, loading, error }) => {
 
@@ -134,15 +135,20 @@ const commentStyles = StyleSheet.create({
 
 export default function ForumPost({ navigation, route }) {
 
-  const user = React.useContext(UserContext)
-  const { id, title, detail, postLoading, postError } = useGetPostFromId({id: route.params.postId, selectedTopic: route.params.selectedTopic})
-
   const [reload, setReload] = useState(false)
-
-  const { comments, error } = useGetComments({id: route.params.postId, selectedTopic: route.params.selectedTopic, reload: reload})
+  const user = React.useContext(UserContext)
+  const mixpanel = useMixpanel();
 
   const [postCommentError, setPostCommentError] = useState()
   const [postCommentLoading, setPostCommentLoading] = useState()
+
+  const { id, title, detail, postLoading, postError } = useGetPostFromId({id: route.params.postId, selectedTopic: route.params.selectedTopic})
+  const { comments, error } = useGetComments({id: route.params.postId, selectedTopic: route.params.selectedTopic, reload: reload})
+
+  useEffect(() => {
+    console.log("mixpanel", mixpanel)
+    mixpanel.track("Post opened", {id: route.params.postId, topic: route.params.selectedTopic})
+  }, [])
 
   const onPostComment = ( commentText ) => {
       let commentId = generateID(10)
@@ -168,7 +174,34 @@ export default function ForumPost({ navigation, route }) {
             <View>
               <View style={forumPostStyles.postDetailContainer}>
                 {postError && <Text style={forumPostStyles.errorText}>{postError.message}</Text>}
-                <Markdown style={{ body: { color: '#000000' } }} >
+                <Markdown
+                  style={{
+                    body: {
+                      color: '#000000',
+                      fontSize: 17,
+                    },
+                    paragrah: {
+                      lineHeight: 20,
+                    },
+                    heading2: {
+                      color: '#4c6857',
+                      fontWeight: '200',
+                      margin: 10,
+                    },
+                    heading1: {
+                      color: '#4c6857',
+                      fontWeight: '200',
+                      margin: 10,
+                    },
+                    link: {
+                      color: '#80AF92',
+                      backgroundColor: 'rgba(128,175,146,0.2)',
+                    },
+                    list_item: {
+                      marginBottom: 10,
+                    },
+                  }}
+                  onLinkPress={ (url) => {console.log(url); Linking.openURL(url);} }>
                   {postLoading ? "" : detail}
                 </Markdown>
               </View>
