@@ -237,7 +237,6 @@ export default function App() {
        }).catch(error => console.log(error) )
      }
      if (!user) { setUser(false) } // logging out
-     if (initializing) setInitializing(false);
    }
 
    useEffect(() => {
@@ -246,6 +245,7 @@ export default function App() {
      }, FADEDURATION);
      // WATCH AUTH STATUS FIREBASE
      const subscriber = auth().onAuthStateChanged(onAuthStateChanged);
+     if (initializing) setInitializing(false);
      return subscriber; // unsubscribe on unmount
    }, []);
 
@@ -259,7 +259,7 @@ export default function App() {
 
    if (initializing) return null;
 
-   if (!user && showSplash) return (
+   if (showSplash) return (
      <View style={{backgroundColor: '#80af92'}}>
       <Animated.Image
         source={ require('./assets/dads-beach-photo-crop.jpg') }
@@ -270,20 +270,19 @@ export default function App() {
       </View>
     )
 
+    if (!user) return (
+      <>
+        <NavigationContainer>
+          <Stack.Navigator
+            screenOptions={{ unmountOnBlur: true, headerShown: false }}>
+            <Stack.Screen component={LoginScreen} name="Login" />
+            <Stack.Screen component={CreateAccountScreen} name="Create Account" />
+          </Stack.Navigator>
+        </NavigationContainer>
+      </>
+    )
 
-   if (!user && !showSplash) return (
-     <>
-       <NavigationContainer>
-         <Stack.Navigator
-           screenOptions={{ unmountOnBlur: true, headerShown: false }}>
-           <Stack.Screen component={LoginScreen} name="Login" />
-           <Stack.Screen component={CreateAccountScreen} name="Create Account" />
-         </Stack.Navigator>
-       </NavigationContainer>
-     </>
-   )
-
-   if (user) return (
+   return (
      <GestureHandlerRootView style={{ flex: 1 }}>
        <UserContext.Provider value={user}>
          <MixpanelProvider>
