@@ -11,8 +11,7 @@ import {
 } from 'react-native';
 import Button from '../components/Button';
 import InputField from '../components/InputField';
-import auth from '@react-native-firebase/auth'; // ADDED!
-
+import auth from '@react-native-firebase/auth';
 
 export default function Login({ navigation }) {
   const [creds, setCreds, credsRef] = useState({});
@@ -29,6 +28,7 @@ export default function Login({ navigation }) {
   };
 
   const login = async () => {
+
     setLoading(true)
     try {
       response = await auth().signInWithEmailAndPassword(creds.username, creds.password)

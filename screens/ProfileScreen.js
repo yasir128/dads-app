@@ -1,11 +1,15 @@
-import * as React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
   SafeAreaView,
   StyleSheet,
   TouchableOpacity,
+  ActivityIndicator,
+  TextInput
 } from 'react-native';
+
+import timeBetween from '../helperFunctions/timeBetween'
 
 import auth from '@react-native-firebase/auth';
 import Icon from 'react-native-vector-icons/Entypo';
@@ -13,34 +17,112 @@ import Icon from 'react-native-vector-icons/Entypo';
 import Avatar from '../components/Avatar';
 import CircleIcon from '../components/CircleIcon';
 
-const IconLabelButton = ({ label, color, iconName, onPress }) => (
+const IconLabelButton = ({ label, color, iconName, onPress, size=40 }) => (
   <TouchableOpacity style={iconLabelButtonStyles.container} onPress={onPress}>
     <CircleIcon
-      Icon={<Icon size={20} name={iconName} color="#ffff" />}
-      size={40}
+      Icon={<Icon size={size/2} name={iconName} color="#ffff" />}
+      size={size}
       color={color}
     />
     <Text style={iconLabelButtonStyles.labelText}>{label}</Text>
   </TouchableOpacity>
 );
 
+
+
+const displayNameContainerStyles = StyleSheet.create({
+  container: {
+    display: 'flex',
+    flexDirection: 'row',
+  },
+  text: {
+    fontSize: 30,
+    fontWeight: 'bold',
+    color: '#000000'
+  },
+})
+
 export default function Profile({ navigation, route }) {
+
+  const [reload, setReload] = useState()
+
+  const [user, setUser] = useState()
+
+  const [emailVerifiedStatus, setEmailVerifiedStatus] = useState('Press to confirm your email address')
+
+  const [accountActive, setAccountActive] = useState('loading')
+
+  useEffect(() => {
+    setUser(auth().currentUser)
+
+    // CALCULATE ACTIVE DAYS
+    let creationDate = new Date(auth().currentUser.metadata.creationTime)
+    let now = new Date()
+
+    setAccountActive(timeBetween(creationDate, now))
+
+  }, [reload])
+
 
   const signOut = () => {
     auth().signOut().then(() => console.log("Signout"))
   }
 
+  const changeProfilePicture = () => {
+
+  }
+
+  const confirmEmail = () => {
+    auth().currentUser.sendEmailVerification().then(() => {
+      setEmailVerifiedStatus('Please check your emails')
+    })
+  }
+
+
+
+
+  const DisplayNameContainer = () => {
+    const [editMode, setEditMode] = useState(false)
+    const [loading, setLoading] = useState(false)
+    const [typedName, setTypedName] = useState()
+
+    const [inputRef, setInputRef] = useState()
+
+    const updateDisplayName = () => {
+      setLoading(true)
+      auth().currentUser.updateProfile({displayName: typedName}).then(() => {
+        setLoading(false);
+        inputRef.blur()
+        setEditMode(false)
+      })
+    }
+
+    return (
+      <View style={displayNameContainerStyles.container}>
+        <TextInput
+        ref={input => setInputRef(input)}
+        onChangeText={t => setTypedName(t)}
+        autoCapitalize="words"
+        onPressIn={() => setEditMode(true)}
+        style={displayNameContainerStyles.text}>{user && user.displayName}</TextInput>
+        {!editMode && <IconLabelButton color="#1f98c4" iconName="edit" size={20} onPress={() => {inputRef.focus(); setEditMode(true);}} /> }
+        {(editMode && !loading) && <IconLabelButton onPress={updateDisplayName} color="#1fc44b" iconName="check" size={24} /> }
+        {loading && <ActivityIndicator color="#1f98c4" size={20} />}
+      </View>
+    )
+  }
+
   return (
     <SafeAreaView style={profileStyles.container}>
       <View style={profileStyles.topProfileStatusContainer}>
-        <View style={profileStyles.avatarContainer}>
+        <TouchableOpacity style={profileStyles.avatarContainer} onPress={changeProfilePicture}>
           <Avatar size={100} />
-        </View>
+        </TouchableOpacity>
         <View style={profileStyles.topProfileStatus}>
-          <Text style={profileStyles.username}>John Smith</Text>
+          <DisplayNameContainer />
           <View style={profileStyles.activeIndicatorContainer}>
             <Text style={profileStyles.activeIndicatorText}>
-              account active 1 month
+              account active{' '}{accountActive}
             </Text>
             <View style={profileStyles.activeIndicator}></View>
           </View>
@@ -50,11 +132,12 @@ export default function Profile({ navigation, route }) {
       <View style={profileStyles.sectionContainer}>
         <Text style={profileStyles.sectionTitle}>Settings</Text>
         <View style={profileStyles.sectionBody}>
-          <IconLabelButton
-            label="Please confirm your email"
+          {user && !user.emailVerified && <IconLabelButton
+            label={emailVerifiedStatus}
             color="#e52226"
             iconName="mail"
-          />
+            onPress={confirmEmail}
+          /> }
           <IconLabelButton label="Messages" color="#018f99" iconName="chat" />
           <IconLabelButton
             onPress={signOut}
@@ -78,6 +161,7 @@ const iconLabelButtonStyles = StyleSheet.create({
   labelText: {
     marginLeft: 7,
     fontSize: 15,
+    color: '#000000'
   },
 });
 
@@ -97,10 +181,6 @@ const profileStyles = StyleSheet.create({
     flexDirection: 'column',
     marginTop: 15,
     marginLeft: 10,
-  },
-  username: {
-    fontSize: 30,
-    fontWeight: 'bold',
   },
   activeIndicatorContainer: {
     display: 'flex',

@@ -10,14 +10,17 @@ import {
   Image,
   ActivityIndicator,
   TouchableOpacity,
+  Linking
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import SearchBar from '../components/SearchBar'
 
-import { firebase } from '@react-native-firebase/database';
+import {useGetFeaturedArticles} from '../hooks/useGetFeaturedArticles'
 
 import { generateID } from '../helperFunctions/randomGen'
 import * as Constants from '../Constants'
+
+import { useGetForumTopics } from '../hooks/useGetForumTopics'
 
 const sectionHeaderStyles = StyleSheet.create({
   container: {
@@ -33,7 +36,7 @@ const sectionHeaderStyles = StyleSheet.create({
   },
   title: {
     fontSize: 18,
-    color: '#490100',
+    color: '#828282',
   },
   right: {
     fontWeight: 'bold',
@@ -60,46 +63,31 @@ const featuredArticleStyles = StyleSheet.create({
   },
   title: {
     position: 'absolute',
-    top: 130,
+    top: 0,
     width: '100%',
     height: '100%',
-    backgroundColor: 'rgba(161,174,226,0.5)',
+    opacity: 0.6,
     textAlign: 'left',
-    fontSize: 18,
+    fontSize: 30,
     padding: 5,
     paddingTop: '27%',
-    color: '#404766',
+    color: '#f7f9fc',
     fontWeight: 'bold',
   },
 });
 
 export default function ForumHome({ navigation, route }) {
-  const [mainTopics, setMainTopics] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [ query, setQuery ] = useState('')
 
-  const dbRef = firebase.app().database(Constants.DB_NAME).ref('/forum')
+  const { featuredArticles, featuredArticlesError } = useGetFeaturedArticles()
 
-  const onTopicSelected = (title) => {
-    navigation.navigate('Forum Children', { selectedTopic: title })
+
+  const { topicsLoading, topicsError, topics } = useGetForumTopics({ query: query })
+
+  const onTopicSelected = (selectedTopic) => {
+    navigation.navigate('Forum Children', { selectedTopic: selectedTopic })
   };
 
-  useEffect(() => {
-    console.log("USe effecting")
-    dbRef
-      .once('value')
-      .then(snapshot => {
-        setLoading(false)
-        let rawData = snapshot.val()
-        let data = Object.keys(rawData).map(k => ({ title: k, id: generateID(Constants.ID_LENGTH) }) )
-        console.log(data)
-        setMainTopics( data )
-      })
-      .catch(err => {
-        console.log("ERROR", err)
-        setLoading(false)
-      })
-
-  }, [])
 
   const SectionHeader = ({ title, onPress }) => (
     <TouchableOpacity onPress={onPress} style={[sectionHeaderStyles.container, legalStyles.shadowStyles]}>
@@ -113,57 +101,53 @@ export default function ForumHome({ navigation, route }) {
     </TouchableOpacity>
   );
 
-  const FeaturedArticle = ({ title, imageUri }) => (
-    <View style={[featuredArticleStyles.container, legalStyles.shadowStyles]}>
-      <Image style={featuredArticleStyles.image} source={{ uri: imageUri }} />
-      <Text style={featuredArticleStyles.title}>{title}</Text>
-    </View>
+  const FeaturedArticle = ({ title, imageUri, link, backgroundColor, postId }) => (
+    <TouchableOpacity
+      onPress={() => {
+        if (link) Linking.openURL(link)
+        else navigation.navigate('Post', {postId: postId, selectedTopic: title})
+      }}
+      style={[featuredArticleStyles.container, legalStyles.shadowStyles]}>
+      <Image style={featuredArticleStyles.image} source={{ uri: imageUri }} blurRadius={10} />
+      <Text style={[featuredArticleStyles.title, {backgroundColor: backgroundColor || '#65676b'}]}>{title}</Text>
+    </TouchableOpacity>
   );
 
   return (
     <SafeAreaView style={legalStyles.container}>
-      <SearchBar />
+      <SearchBar placeholder="Search for a section" onSearching={q => setQuery(q)} />
       <ScrollView style={legalStyles.sectionsContainer}>
         <ScrollView style={legalStyles.featuredArticleContainer} horizontal>
-          <FeaturedArticle
-            title="Dads Rights: the rise of firms"
-            imageUri={
-              'https://i.guim.co.uk/img/media/83882f4ccd86755bd7731946d0cf19212b8a2f33/0_0_4992_2995/master/4992.jpg?width=620&quality=45&fit=max&dpr=2&s=e8d8f593e4038d8c0a37afba0d436a51'
-            }
-          />
-          <FeaturedArticle
-            title="How to survive divorce"
-            imageUri={
-              'https://i.guim.co.uk/img/media/428287140488fd11d87350340cb0929d7855cc85/0_0_1280_768/master/1280.jpg?width=620&quality=45&fit=max&dpr=2&s=c7abe4b381cd4648a7c418a8034e0f48'
-            }
-          />
-          <FeaturedArticle
-            title="Dads Rights: the rise of firms"
-            imageUri={
-              'https://i.guim.co.uk/img/media/83882f4ccd86755bd7731946d0cf19212b8a2f33/0_0_4992_2995/master/4992.jpg?width=620&quality=45&fit=max&dpr=2&s=e8d8f593e4038d8c0a37afba0d436a51'
-            }
-          />
-          <FeaturedArticle
-            title="Dads Rights: the rise of firms"
-            imageUri={
-              'https://i.guim.co.uk/img/media/83882f4ccd86755bd7731946d0cf19212b8a2f33/0_0_4992_2995/master/4992.jpg?width=620&quality=45&fit=max&dpr=2&s=e8d8f593e4038d8c0a37afba0d436a51'
-            }
-          />
+          { featuredArticles
+            ? featuredArticles.map(fA =>   <FeaturedArticle { ...fA } />)
+            : <ActivityIndicator size={30} color='#11798e' /> }
+          {featuredArticlesError && <Text style={legalStyles.errorText}>{featuredArticlesError}</Text>}
         </ScrollView>
 
-        { loading && <ActivityIndicator size={30} color='#11798e' /> }
+
+        <Text style={legalStyles.forumTitleText}>Forums</Text>
+
+        { topicsLoading && <ActivityIndicator size={30} color='#11798e' /> }
 
         <FlatList
-          keyExtractor={(item) => item.id}
-          data={mainTopics}
+          keyExtractor={(item) => item.key}
+          data={topics}
           renderItem={(item) => <SectionHeader {...item.item} onPress={() => onTopicSelected(item.item.title)} />}
         />
       </ScrollView>
+
+
+
     </SafeAreaView>
   );
 }
 
 const legalStyles = StyleSheet.create({
+  errorText: {
+    color: '#872e2c',
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
   container: {
     marginTop: 30,
   },
@@ -180,5 +164,13 @@ const legalStyles = StyleSheet.create({
   featuredArticleContainer: {
     display: 'flex',
     flexDirection: 'row',
+  },
+  forumTitleText: {
+    fontSize: 20,
+    color: '#cecece',
+    margin: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#cecece',
+    paddingBottom: 5,
   },
 });
