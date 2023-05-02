@@ -1,0 +1,39 @@
+{
+  "name": "MixpanelReactNative",
+  "version": "2.1.0",
+  "summary": "Official React Native Tracking Library for Mixpanel Analytics",
+  "description": "Official React Native Tracking Library for Mixpanel Analytics",
+  "license": "Apache-2.0",
+  "authors": {
+    "Mixpanel, Inc": "support@mixpanel.com"
+  },
+  "homepage": "https://github.com/mixpanel/mixpanel-react-native#readme",
+  "platforms": {
+    "ios": "9.0"
+  },
+  "swift_versions": "5.0",
+  "source": {
+    "git": "https://github.com/mixpanel/mixpanel-react-native.git",
+    "tag": "2.1.0"
+  },
+  "source_files": "ios/*.{swift,h,m}",
+  "requires_arc": true,
+  "preserve_paths": [
+    "LICENSE",
+    "README.md",
+    "package.json",
+    "index.js"
+  ],
+  "pod_target_xcconfig": {
+    "DEFINES_MODULE": "YES"
+  },
+  "dependencies": {
+    "React-Core": [
+
+    ],
+    "Mixpanel-swift": [
+      "4.0.2"
+    ]
+  },
+  "swift_version": "5.0"
+}

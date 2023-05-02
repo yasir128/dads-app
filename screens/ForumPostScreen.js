@@ -23,7 +23,6 @@ import * as Constants from '../Constants'
 import {UserContext} from '../App'
 import { generateID } from '../helperFunctions/randomGen'
 
-import { useMixpanel } from '../Analytics';
 
 const AddComment = ({ onPostComment, loading, error }) => {
 
@@ -137,18 +136,12 @@ export default function ForumPost({ navigation, route }) {
 
   const [reload, setReload] = useState(false)
   const user = React.useContext(UserContext)
-  const mixpanel = useMixpanel();
 
   const [postCommentError, setPostCommentError] = useState()
   const [postCommentLoading, setPostCommentLoading] = useState()
 
   const { id, title, detail, postLoading, postError } = useGetPostFromId({id: route.params.postId, selectedTopic: route.params.selectedTopic})
   const { comments, error } = useGetComments({id: route.params.postId, selectedTopic: route.params.selectedTopic, reload: reload})
-
-  useEffect(() => {
-    console.log("mixpanel", mixpanel)
-    mixpanel.track("Post opened", {id: route.params.postId, topic: route.params.selectedTopic})
-  }, [])
 
   const onPostComment = ( commentText ) => {
       let commentId = generateID(10)

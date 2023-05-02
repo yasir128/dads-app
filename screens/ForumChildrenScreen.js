@@ -10,7 +10,8 @@ import {
   Image,
   ActivityIndicator,
   TouchableOpacity,
-  Dimensions
+  Dimensions,
+  Animated
 } from 'react-native';
 import useState from 'react-usestateref';
 
@@ -25,9 +26,8 @@ import * as Constants from '../Constants'
 
 import dateFormat from '../helperFunctions/dateFormat'
 
-
 const TimeStamp = ({ d }) => (
-    <Text style={{ color: '#828282', fontSize: 10, }}>{ d ? dateFormat(new Date(d), 'DD-MM-YYYY') : '' }</Text>
+    <Text style={{ color: '#000000', fontSize: 10, fontWeight: '300' }}>{ d ? dateFormat(new Date(d), 'DD/MM/YYYY') : '' }</Text>
 )
 
 const PostThumbnail = ({ title, detail, date, index, onPress }) => (
@@ -41,30 +41,45 @@ const PostThumbnail = ({ title, detail, date, index, onPress }) => (
   </TouchableOpacity>
 )
 
+
 const postThumbnailStyles = StyleSheet.create({
   container: {
-    width: Dimensions.get('window').width * 0.9,
+    width: Dimensions.get('window').width * 0.92,
     overflow: 'hidden',
     display: 'flex',
     flexDirection: 'row',
-    padding: 10,
-    marginBottom: 1,
-    backgroundColor: 'rgba(204,229,232, 0.5)',
+    padding: 25,
+    marginBottom: 10,
+    borderRadius: 10,
+    backgroundColor: 'rgb(255,255,255)',
+    // backgroundColor: '#264653',
+    // backgroundColor: randomChoice(niceColorList),
+    // SHADOW
+    shadowColor: '#7c7f7d',
+    elevation: 3,
+    shadowOffset: { width: -4, height: 5 },
+    shadowOpacity: 1,
+    shadowRadius: 1,
+    // borderBottomWidth: 1,
+    // backgroundColor: 'rgba(204,229,232, 0.5)',
   },
   detailContainer: {
     display: 'flex',
   },
   title: {
-    color: '#646654',
-    fontSize: 20,
+    color: '#42603e',
+    fontSize: 30,
+    fontWeight: '200',
   },
   detail: {
     width: 230,
-    color: '#a5a5a5'
+    color: 'rgba(0,0,0,0.3)'
   },
   timeStampContainer: {
-    alignSelf: 'flex-end',
-    marginLeft: 25,
+    // alignSelf: 'flex-end',
+    position: 'absolute',
+    bottom: 10,
+    right: 20,
   },
 })
 
@@ -72,9 +87,9 @@ const postThumbnailStyles = StyleSheet.create({
 export default function ForumChildren({ route, navigation }) {
 
   const [query, setQuery, queryRef] = useState('')
-
-
   const {posts, postsError, postsLoading} = useGetPostsFromTopic({selectedTopic: route.params.selectedTopic, query: queryRef.current})
+
+  const scrollY = new Animated.Value(0);
 
   const onPostPressed = (index) => {
     navigation.navigate('Post', {postId: posts[index].key, selectedTopic: route.params.selectedTopic })
@@ -82,7 +97,7 @@ export default function ForumChildren({ route, navigation }) {
 
   useLayoutEffect(() => {
     navigation.setOptions({
-      headerTitle: () => <SearchBar onSearching={ t => setQuery(t) } placeholder="Search for a post" style={{height: 50, width: 250}} iconSize={15} />,
+      headerTitle: () => <SearchBar onSearching={ t => setQuery(t) } placeholder="Search for a post" style={{height: 50, width: 290}} iconSize={15} />,
     })
   }, [])
 
@@ -91,17 +106,31 @@ export default function ForumChildren({ route, navigation }) {
       <View style={forumChildrenStyles.container}>
           { postsLoading && <ActivityIndicator size={30} color='#11798e' style={{ marginTop: 100 }} /> }
           <View style={forumChildrenStyles.flatListContainer}>
-          <FlatList
+          <Animated.FlatList
             keyExtractor={(item) => item.id}
             data={posts}
             scrollEnabled={true}
             renderItem={({ item, index }) => <PostThumbnail {...item} index={index} onPress={onPostPressed} />}
+            onScroll={Animated.event(
+              [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+              { useNativeDriver: true },
+            )}
           />
           </View>
 
         <TouchableOpacity
         onPress={() => navigation.navigate('Forum Post', { selectedTopic: route.params.selectedTopic })}
-        style={forumChildrenStyles.addPostContainer}>
+        style={[forumChildrenStyles.addPostContainer,
+          {transform: [ // Hide add button onScroll
+            {
+              translateX: scrollY.interpolate({
+                inputRange: [0, Dimensions.get('window').height],
+                outputRange: [0, 500]
+              })
+            }
+          ]}
+        ]}
+        >
           <Text style={forumChildrenStyles.addPostText}>+</Text>
         </TouchableOpacity>
       </View>
@@ -109,6 +138,17 @@ export default function ForumChildren({ route, navigation }) {
   )
 
 }
+
+/*
+[
+  {transform: [
+    {translateX: scrollY.interpolate({
+      inputRange: [0, Dimensions.get('window').height],
+      outputRange: [0, 5]
+    })}
+  ]}
+]
+*/
 
 const forumChildrenStyles = StyleSheet.create({
 

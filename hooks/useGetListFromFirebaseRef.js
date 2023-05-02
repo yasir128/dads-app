@@ -14,6 +14,7 @@ export const useGetListFromFirebaseRef = ({ ref, reload }) => {
 
     useEffect(() => {
         dbRef
+        .orderByChild('date')
         .once('value')
         .then(snapshot => {
           let rawData = snapshot.val()

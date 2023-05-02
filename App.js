@@ -33,17 +33,20 @@
  import ForumHomeScreen from './screens/ForumHomeScreen';
  import ForumChildrenScreen from './screens/ForumChildrenScreen'
  import ForumPostScreen from './screens/ForumPostScreen'
+ import EmailAddressSettings from './screens/EmailAddressSettings'
+ import SignOutSettings from './screens/SignOutSettings'
+ import ManageAccountSettings from './screens/ManageAccountSettings'
  // import FlowchartScreen from './screens/FlowchartScreen'
  import FlowchartScreen from './screens/FlowchartQuizScreen'
  import UserForumPostScreen from './screens/UserForumPostScreen'
 
- import { MixpanelProvider, useMixpanel }  from './Analytics';
 
  const Stack = createNativeStackNavigator();
  const ChatStack = createNativeStackNavigator();
  const ForumStack = createNativeStackNavigator();
  const HomeStack = createNativeStackNavigator()
  const FlowchartStack = createNativeStackNavigator();
+ const SettingsStack = createNativeStackNavigator();
  const Tab = createBottomTabNavigator();
 
 
@@ -119,6 +122,15 @@ export const UserContext = React.createContext();
      />
    </ChatStack.Navigator>
  );
+
+ const SettingsScreens = () => (
+   <SettingsStack.Navigator screenOptions={screenOptions}>
+      <SettingsStack.Screen component={ProfileScreen} name="Profile"/>
+      <SettingsStack.Screen component={EmailAddressSettings} name="Email Address"/>
+      <SettingsStack.Screen component={ManageAccountSettings} name="Manage Account"/>
+      <SettingsStack.Screen component={SignOutSettings} name="Sign Out" />
+   </SettingsStack.Navigator>
+ )
 
  const ForumScreens = ({ navigation }) => {
 
@@ -209,8 +221,8 @@ const FlowchartScreens = () => (
       }}
      />
      <Tab.Screen
-       name="Profile"
-       component={ProfileScreen}
+       name="Settings"
+       component={SettingsScreens}
        options={{
          tabBarIcon: ({ color, size }) => (
            <Icon name="user-circle" color={color} size={size} />
@@ -285,14 +297,12 @@ export default function App() {
    return (
      <GestureHandlerRootView style={{ flex: 1 }}>
        <UserContext.Provider value={user}>
-         <MixpanelProvider>
            <NavigationContainer linking={linking}>
              <Stack.Navigator
                screenOptions={{ unmountOnBlur: true, headerShown: false }}>
                <Stack.Screen component={Tabs} name="HomeTabs" />
              </Stack.Navigator>
            </NavigationContainer>
-         </MixpanelProvider>
        </UserContext.Provider>
      </GestureHandlerRootView>
    );

@@ -7,7 +7,8 @@ import {
   TextInput,
   TouchableOpacity,
   SafeAreaView,
-  ActivityIndicator
+  ActivityIndicator,
+  Image
 } from 'react-native';
 import Button from '../components/Button';
 import InputField from '../components/InputField';
@@ -41,7 +42,7 @@ export default function Login({ navigation }) {
   return (
     <SafeAreaView style={loginStyles.container}>
       <View style={loginStyles.logoContainer}>
-        <Text style={loginStyles.logoPlaceholder}>Logo</Text>
+        <Image source={require('../assets/icon.png')} style={loginStyles.logo} />
       </View>
       <View style={loginStyles.inputsContainer}>
         <InputField
@@ -106,12 +107,13 @@ const loginStyles = StyleSheet.create({
     textAlign: 'center',
   },
   logoContainer: {
-    margin: 50,
+    margin: 10,
+    marginTop: 30,
     display: 'flex',
     alignItems: 'center',
   },
-  logoPlaceholder: {
-    fontSize: 20,
-    color: '#ffff',
+  logo: {
+    width: 100,
+    height: 100,
   },
 });

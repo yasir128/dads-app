@@ -17,18 +17,54 @@ import Icon from 'react-native-vector-icons/Entypo';
 import Avatar from '../components/Avatar';
 import CircleIcon from '../components/CircleIcon';
 
-const IconLabelButton = ({ label, color, iconName, onPress, size=40 }) => (
-  <TouchableOpacity style={iconLabelButtonStyles.container} onPress={onPress}>
+const EditButton = ({ label, color, iconName, onPress, size=40 }) => (
+  <TouchableOpacity style={editButtonStyles.container} onPress={onPress}>
     <CircleIcon
       Icon={<Icon size={size/2} name={iconName} color="#ffff" />}
       size={size}
       color={color}
     />
-    <Text style={iconLabelButtonStyles.labelText}>{label}</Text>
+    <Text style={editButtonStyles.labelText}>{label}</Text>
   </TouchableOpacity>
 );
 
 
+  const SettingButton = ({ label, onPress}) => (
+  <TouchableOpacity style={settingButtonStyles.container} onPress={onPress}>
+    <Text style={settingButtonStyles.labelText}>{label}</Text>
+    <View style={settingButtonStyles.iconContainer}>
+      <CircleIcon Icon={<Icon size={15} name={"chevron-right"} color="black" />} size={25} color='#f0eff2' />
+    </View>
+  </TouchableOpacity>
+);
+
+
+const settingButtonStyles = StyleSheet.create({
+  container: {
+    display: 'flex',
+    flexDirection: 'row',
+    margin: 10,
+    width: '100%',
+    backgroundColor: '#f6f6f6',
+    padding: 20,
+    borderRadius: 10,
+    //SHADOW
+    shadowColor: '#b7b5b5',
+    elevation: 1,
+    shadowOffset: { width: -3, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+  },
+  labelText: {
+    marginLeft: 7,
+    fontSize: 15,
+    color: '#000000',
+    flex: 0.9,
+  },
+  iconContainer: {
+    flex: 0.1,
+  },
+})
 
 const displayNameContainerStyles = StyleSheet.create({
   container: {
@@ -38,7 +74,8 @@ const displayNameContainerStyles = StyleSheet.create({
   text: {
     fontSize: 30,
     fontWeight: 'bold',
-    color: '#000000'
+    color: '#000000',
+    width: 150,
   },
 })
 
@@ -47,8 +84,6 @@ export default function Profile({ navigation, route }) {
   const [reload, setReload] = useState()
 
   const [user, setUser] = useState()
-
-  const [emailVerifiedStatus, setEmailVerifiedStatus] = useState('Press to confirm your email address')
 
   const [accountActive, setAccountActive] = useState('loading')
 
@@ -63,23 +98,9 @@ export default function Profile({ navigation, route }) {
 
   }, [reload])
 
-
-  const signOut = () => {
-    auth().signOut().then(() => console.log("Signout"))
-  }
-
   const changeProfilePicture = () => {
 
   }
-
-  const confirmEmail = () => {
-    auth().currentUser.sendEmailVerification().then(() => {
-      setEmailVerifiedStatus('Please check your emails')
-    })
-  }
-
-
-
 
   const DisplayNameContainer = () => {
     const [editMode, setEditMode] = useState(false)
@@ -104,9 +125,10 @@ export default function Profile({ navigation, route }) {
         onChangeText={t => setTypedName(t)}
         autoCapitalize="words"
         onPressIn={() => setEditMode(true)}
+        multiline
         style={displayNameContainerStyles.text}>{user && user.displayName}</TextInput>
-        {!editMode && <IconLabelButton color="#1f98c4" iconName="edit" size={20} onPress={() => {inputRef.focus(); setEditMode(true);}} /> }
-        {(editMode && !loading) && <IconLabelButton onPress={updateDisplayName} color="#1fc44b" iconName="check" size={24} /> }
+        {!editMode && <EditButton color="#1f98c4" iconName="edit" size={20} onPress={() => {inputRef.focus(); setEditMode(true);}} /> }
+        {(editMode && !loading) && <EditButton onPress={updateDisplayName} color="#1fc44b" iconName="check" size={24} /> }
         {loading && <ActivityIndicator color="#1f98c4" size={20} />}
       </View>
     )
@@ -132,26 +154,26 @@ export default function Profile({ navigation, route }) {
       <View style={profileStyles.sectionContainer}>
         <Text style={profileStyles.sectionTitle}>Settings</Text>
         <View style={profileStyles.sectionBody}>
-          {user && !user.emailVerified && <IconLabelButton
-            label={emailVerifiedStatus}
-            color="#e52226"
-            iconName="mail"
-            onPress={confirmEmail}
-          /> }
-          <IconLabelButton label="Messages" color="#018f99" iconName="chat" />
-          <IconLabelButton
-            onPress={signOut}
-            label="Sign Out"
-            color="#4fb2fc"
-            iconName="log-out"
+          <SettingButton
+            label="Email Address"
+            onPress={() => navigation.navigate('Email Address')}
           />
+          <SettingButton label="Account" onPress={() => navigation.navigate('Manage Account')}/>
         </View>
       </View>
+      <View style={profileStyles.sectionContainer}>
+        <Text style={profileStyles.sectionTitle}>General</Text>
+        <SettingButton label="Sign Out" onPress={() => navigation.navigate('Sign Out')} />
+      </View>
+
+
+      {/* Change email address */}
+
     </SafeAreaView>
   );
 }
 
-const iconLabelButtonStyles = StyleSheet.create({
+const editButtonStyles = StyleSheet.create({
   container: {
     display: 'flex',
     flexDirection: 'row',
@@ -179,7 +201,7 @@ const profileStyles = StyleSheet.create({
   topProfileStatus: {
     display: 'flex',
     flexDirection: 'column',
-    marginTop: 15,
+    marginTop: 5,
     marginLeft: 10,
   },
   activeIndicatorContainer: {

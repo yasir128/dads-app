@@ -8,7 +8,8 @@ import {
   TouchableOpacity,
   SafeAreaView,
   ActivityIndicator,
-  ScrollView
+  ScrollView,
+  Image
 } from 'react-native';
 import Button from '../components/Button';
 import InputField from '../components/InputField';
@@ -44,7 +45,7 @@ export default function CreateAccountScreen({ navigation }) {
 
   const createAccount = () => {
     setLoading(true)
-    auth().createUserWithEmailAndPassword(creds.username, creds.password) 
+    auth().createUserWithEmailAndPassword(creds.username, creds.password)
     .then(response => {
       // console.log("user", response.user, displayName, phoneNumber)
       // firebase.database().ref('users/' + response.user.uid).set({ phoneNumber: phoneNumber,  displayName: displayName, photoURL: "https://media.istockphoto.com/photos/male-silhouette-as-avatar-profile-picture-picture-id519078727?k=6&m=519078727&s=170667a&w=0&h=YSEa8Eia7WKxx4FeSM53AGW9DqBtFwg5KHyGno-W7fc=" })
@@ -61,21 +62,17 @@ export default function CreateAccountScreen({ navigation }) {
   return (
     <ScrollView style={createAccountStyles.container}>
       <View style={createAccountStyles.logoContainer}>
-        <Text style={createAccountStyles.logoPlaceholder}>Logo</Text>
+        <Image source={require('../assets/icon.png')} style={createAccountStyles.logo} />
       </View>
       <View style={createAccountStyles.inputsContainer}>
-        {/* <InputField
-          label="Name"
-          onInput={(e) => setDisplayName( e )}
-        />
-        <InputField
-          label="Phone number"
-          onInput={(e) => setPhoneNumber( e )}
-          keyboardType="phone-pad"
-        /> */}
         <InputField
           label="Email"
           onInput={(e) => updateCreds({ username: e })}
+          keyboardType="email-address"
+        />
+        <InputField
+          label="Confirm Email"
+          onInput={(e) => updateCreds({ confirmUsername: e })}
           keyboardType="email-address"
         />
         <InputField
@@ -89,11 +86,15 @@ export default function CreateAccountScreen({ navigation }) {
       </View>
       {loading && <ActivityIndicator size={30} color="white"  />}
       <View style={createAccountStyles.buttonContainer}>
-        <Button onPress={createAccount} buttonTitle="Create Account" disabled={!creds.username || !creds.password || loading || !!response} />
+        <Button
+          onPress={createAccount}
+          buttonTitle="Create Account"
+          disabled={!creds.username || !creds.password || loading || !!response || creds.username !== creds.confirmUsername }
+        />
       </View>
       <TouchableOpacity style={createAccountStyles.touchableOpacity} onPress={login}>
         <Text style={createAccountStyles.grayText}>Already have an account?</Text>
-        <Text style={createAccountStyles.linkText}>Login</Text>
+        <Text style={createAccountStyles.linkText}>{' '}Login</Text>
       </TouchableOpacity>
     </ScrollView>
   );
@@ -143,12 +144,13 @@ const createAccountStyles = StyleSheet.create({
     textAlign: 'center',
   },
   logoContainer: {
-    margin: 50,
+    margin: 10,
+    marginTop: 30,
     display: 'flex',
     alignItems: 'center',
   },
-  logoPlaceholder: {
-    fontSize: 20,
-    color: '#ffff',
+  logo: {
+    width: 100,
+    height: 100,
   },
 });

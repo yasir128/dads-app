@@ -22,21 +22,28 @@ import * as Constants from '../Constants'
 
 import { useGetForumTopics } from '../hooks/useGetForumTopics'
 
+import { randomChoice } from '../helperFunctions/randomGen'
+
+const niceColorList = ['#264653', '#e9c46a', '#ffcad4', '#4a4e69']
+
+
 const sectionHeaderStyles = StyleSheet.create({
   container: {
     display: 'flex',
     flexDirection: 'row',
     margin: 10,
-    padding: 20,
-    paddingBottom: 30,
-    paddingTop: 30,
-    backgroundColor: 'rgba(207, 234, 233, 1)',
+    padding: 50,
+    // paddingBottom: 50,
+    // paddingTop: 50,
+    // backgroundColor: 'rgba(207, 234, 233, 1)',
     borderRadius: 20,
     alignItems: 'center',
   },
   title: {
-    fontSize: 18,
+    fontSize: 30,
     color: '#828282',
+    width: '60%',
+    fontWeight: '200',
   },
   right: {
     fontWeight: 'bold',
@@ -89,8 +96,8 @@ export default function ForumHome({ navigation, route }) {
   };
 
 
-  const SectionHeader = ({ title, onPress }) => (
-    <TouchableOpacity onPress={onPress} style={[sectionHeaderStyles.container, legalStyles.shadowStyles]}>
+  const SectionHeader = ({ title, onPress, index }) => (
+    <TouchableOpacity onPress={onPress} style={[sectionHeaderStyles.container, legalStyles.shadowStyles, {backgroundColor: niceColorList[index % niceColorList.length]}]}>
       <Text style={sectionHeaderStyles.title}>{title}</Text>
       <Icon
         style={sectionHeaderStyles.right}
@@ -132,7 +139,7 @@ export default function ForumHome({ navigation, route }) {
         <FlatList
           keyExtractor={(item) => item.key}
           data={topics}
-          renderItem={(item) => <SectionHeader {...item.item} onPress={() => onTopicSelected(item.item.title)} />}
+          renderItem={(item) => <SectionHeader index={item.index} {...item.item} onPress={() => onTopicSelected(item.item.title)} />}
         />
       </ScrollView>
 
@@ -149,7 +156,6 @@ const legalStyles = StyleSheet.create({
     textAlign: 'center',
   },
   container: {
-    marginTop: 30,
   },
   sectionsContainer: {
     marginBottom: 80,

@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { View, Text, StyleSheet, TextInput } from 'react-native';
 
-export default function InputField({ label, onInput, password, keyboardType }) {
+export default function InputField({ label, onInput, password, keyboardType, style }) {
   return (
     <View style={inputFieldStyles.container}>
       <View style={inputFieldStyles.labelContainer}>
@@ -9,7 +9,7 @@ export default function InputField({ label, onInput, password, keyboardType }) {
       </View>
       <View style={inputFieldStyles.textInputContainer}>
         <TextInput
-          cursorColor="white" 
+          cursorColor="white"
           autoCapitalize="none"
           secureTextEntry={password}
           keyboardType={keyboardType || 'default'}

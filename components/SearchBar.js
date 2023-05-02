@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import { View, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, TextInput, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
 
 import Icon from 'react-native-vector-icons/FontAwesome5';
 
@@ -8,24 +8,26 @@ export default function SearchBar({ onSearch=() => {}, onSearching=() => {}, pla
   const [currentQuery, setcurrentQuery] = useState('')
 
   return (
+    <View style={searchBarStyles.containerContainer}>
     <View style={[searchBarStyles.container, style ]}>
+      <TouchableOpacity onPress={() => onSearch(currentQuery)} >
+      <Icon
+        name="search"
+        size={iconSize}
+        color="#dedfe0"
+        style={searchBarStyles.icon}
+      />
+      </TouchableOpacity>
       <TextInput
         style={searchBarStyles.input}
         placeholder={placeholder}
-        placeholderTextColor="#d1d1d1"
+        placeholderTextColor="#dedfe0"
         onChangeText={t => {
           setcurrentQuery(t);
           onSearching(t);
         }}
       />
-      <TouchableOpacity onPress={() => onSearch(currentQuery)} >
-      <Icon
-        name="search"
-        size={iconSize}
-        color="#80af92"
-        style={searchBarStyles.icon}
-      />
-      </TouchableOpacity>
+    </View>
     </View>
   );
 };
@@ -36,12 +38,17 @@ const searchBarStyles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f2f8f9',
+    backgroundColor: 'rgba(128,175,146,0.8)',
+    // backgroundColor: 'white',
     padding: 10,
     margin: 5,
     borderRadius: 100,
-    borderColor: '#dddddd',
-    borderWidth: 1,
+    // width: Dimensions.get('window').width,
+    shadowColor: '#000000',
+    elevation: 5,
+    shadowOffset: { width: -5, height: 5 },
+    shadowOpacity: 1,
+    shadowRadius: 3,
   },
   input: {
     color: '#5e5e5e',
@@ -52,7 +59,8 @@ const searchBarStyles = StyleSheet.create({
   },
   icon: {
     flex: 1,
-    textAlign: 'right',
+    textAlign: 'left',
     margin: 5,
+    paddingTop: 2,
   },
 });

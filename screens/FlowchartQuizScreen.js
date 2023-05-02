@@ -399,7 +399,7 @@ export default function Flowchart({ navigation, route }) {
 const flowchartStyles = StyleSheet.create({
 
   container: {
-    marginTop: 40,
+    marginTop: 0,
     backgroundColor: '#f9f9f9',
     // margin: 10,
     display: 'flex',

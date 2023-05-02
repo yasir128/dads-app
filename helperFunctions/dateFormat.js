@@ -1,4 +1,4 @@
-export default function dateFormat(date, format = 'YYYY-MM-DDThh:mm:ss') {
+export default function dateFormat(date, format = 'YYYY/MM/DDThh/mm/ss') {
   const pad2 = (n) => n.toString().padStart(2, '0');
 
   const map = {
